@@ -1,0 +1,37 @@
+body>main>article.center>section.recipes-viewer {
+	div.recipes {
+		overflow: auto;
+		height: 15rem;
+		width: 42rem;
+
+		table {
+			thead>tr {
+				border-bottom-style: solid;
+				border-bottom-width: 1px;
+			}
+
+			th:not(:first-of-type),td:not(:first-of-type) {
+				border-left-style: solid;
+				border-left-width: 1px;
+			}
+
+			th {
+				padding: 0.5rem;
+				background: var(--corporate-thead-bgcolor);
+			}
+
+			td {
+				padding: 0em 0.5rem;
+			}
+
+			td.ingredient-count,td.modified {
+				text-align: right;
+			}
+
+			td.access>button>img {
+				height: 3rem;
+				width: 3rem;
+			}
+		}
+	}
+}

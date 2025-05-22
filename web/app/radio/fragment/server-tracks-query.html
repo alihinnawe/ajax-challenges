@@ -1,0 +1,22 @@
+<section class="server-tracks-query">
+	<h1>Track-Auswahl nach Genres und/oder Künstlern</h1>
+	<div class="criteria">
+		<span class="genre">
+			<select multiple="true" size="6"></select>
+		</span>
+		<span class="artist">
+			<select multiple="true" size="6"></select>
+		</span>
+		<span class="control">
+			<label>Lautstärke</label>
+			<input type="range" class="volume" min="0" max="1" step="0.01" value="0.5" title="0% bis 100%" />
+			<label>Expansion/Kompression</label>
+			<input type="range" class="compression-ratio" min="-1" max="+1" step="0.1" value="0" title="0.5 bis 2" />
+			<label>Crossfade-Dauer</label>
+			<input type="range" class="crossfade" min="5" max="15" step="0.1" value="10" title="5 bis 15 Sekunden" />
+		</span>
+	</div>
+	<div class="control">
+		<button class="query" type="button">suchen & hinzufügen</button>
+	</div>
+</section>

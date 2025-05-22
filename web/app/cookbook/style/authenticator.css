@@ -1,0 +1,11 @@
+body>main>article.center>section.authenticator {
+	fieldset.credentials {
+		label {
+			width: 5rem;
+		}
+
+		div.email>input,div.password>input {
+			width: 20rem;
+		}
+	}
+}

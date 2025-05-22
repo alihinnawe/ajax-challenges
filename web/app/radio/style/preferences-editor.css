@@ -1,0 +1,30 @@
+body>main>article.center>section.preferences-editor {
+	div.avatar,div.credentials,div.personal,fieldset.phones {
+		background-color: var(--corporate-division-bgcolor);
+
+		label {
+			width: 6rem;
+		}
+
+		legend {
+			font-size: 75%;
+		}
+
+		button>img {
+			height: 6rem;
+			width: 6rem;
+		}
+
+		div.email>input,div.password>input,span.address input {
+			width: 15rem;
+		}
+
+		span.phones>input {
+			margin-right: 0.5rem;
+		}
+
+		button.add {
+			display: block;
+		}
+	}
+}

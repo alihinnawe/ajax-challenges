@@ -1,0 +1,34 @@
+<section class="victual-editor">
+	<div class="data">
+		<div class="avatar">
+			<label>Avatar</label>
+			<button type="button">
+				<img ondragover="event.preventDefault()" ondrop="event.preventDefault()" />
+			</button>
+			<input class="hidden" type="file" accept="image/*" />
+		</div>
+		<div class="diet">
+			<label>Ernährungsweise</label>
+			<select autocomplete="off">
+				<option value="CARNIVORIAN">Karnivor</option>
+				<option value="PESCATARIAN">Pescatarisch</option>
+				<option value="LACTO_OVO_VEGETARIAN">Ovo-Lacto-Vegetarisch</option>
+				<option value="LACTO_VEGETARIAN">Lacto-Vegetarisch</option>
+				<option value="VEGAN">Vegan</option>
+			</select>
+		</div>
+		<div class="alias">
+			<label>Name</label>
+			<input type="text" />
+		</div>
+		<div class="description">
+			<label>Beschreibung</label>
+			<textarea></textarea>
+		</div>
+	</div>
+	<div class="control">
+		<button class="submit" type="button">speichern</button>
+		<button class="delete" type="button">löschen</button>
+		<button class="cancel" type="button">zurück</button>
+	</div>
+</section>

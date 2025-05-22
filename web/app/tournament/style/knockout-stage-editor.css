@@ -1,0 +1,93 @@
+body>main>article.center>section.knockout-stage-editor {
+	div.tiers {
+		width: 100%;
+		overflow-x: scroll;
+		display: flex;
+
+		div.tier {
+			width: 12rem;
+
+			h1 {
+				text-align: center;
+				margin-bottom: 1rem;
+			}
+
+			div.matches {
+				div.match {
+					div.competitor,div.spacer {
+						position: relative;
+					}
+
+					div.competitor {
+						border-bottom: 1px solid black;
+
+						span {
+							position: absolute;
+							bottom: 0;
+							width: 11.6rem;
+							margin-left: 0.2rem;
+
+							img.avatar {
+								width: 2rem
+								height: 2rem;
+								margin-top: 0.5rem;
+							}
+
+							output.name {
+								font-size: 80%;
+								margin-left: 0.1rem;
+							}
+
+							input.score {
+								float: right;
+								width: 2.25rem;
+								margin-right: 0.2rem;
+							}
+						}
+					}
+
+					div.spacer {
+						border-top: 1px solid black;
+					}
+
+					div.spacer.top,div.competitor.bottom {
+						border-right: 2px solid black;
+					}
+				}
+			}
+		}
+
+		/* height: 25px * 2^(position-1) - 1 */
+		div.tier:nth-of-type(1)>div.matches>div.match>div {
+			height: 24px;
+		}
+
+		div.tier:nth-of-type(2)>div.matches>div.match>div {
+			height: 49px;
+		}
+
+		div.tier:nth-of-type(3)>div.matches>div.match>div {
+			height: 99px;
+		}
+
+		div.tier:nth-of-type(4)>div.matches>div.match>div {
+			height: 199px;
+		}
+
+		div.tier:nth-of-type(5)>div.matches>div.match>div {
+			height: 399px;
+		}
+
+		div.tier:nth-of-type(6)>div.matches>div.match>div {
+			height: 799px;
+		}
+
+		div.tier:nth-of-type(7)>div.matches>div.match>div {
+			height: 1600px;
+		}
+
+		div.tier:nth-of-type(8)>div.matches>div.match>div {
+			height: 3200px;
+		}
+	}
+}

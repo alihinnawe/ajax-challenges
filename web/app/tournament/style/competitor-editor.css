@@ -1,0 +1,12 @@
+body>main>article.center>section.competitor-editor {
+	div.data {
+		label {
+			width: 3rem;
+		}
+
+		div.avatar>button>img {
+			height: 6rem;
+			width: 6rem;
+		}
+	}
+}

@@ -1,0 +1,19 @@
+body>main>article.center>section.recipes-query {
+	div.criteria {
+		span.left label {
+			width: 7rem;
+		}
+
+		span.right label {
+			width: 9rem;
+		}
+
+		select {
+			width: 12.35rem;
+		}
+
+		div.diets>select {
+			vertical-align: top;
+		}
+	}
+}

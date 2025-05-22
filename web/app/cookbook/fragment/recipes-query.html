@@ -1,0 +1,60 @@
+<section class="recipes-query">
+	<h1>Filter-Kriterien</h1>
+	<div class="criteria">
+		<span class="left">
+			<div class="title">
+				<label>Titel</label>
+				<input type="text" />
+			</div>
+			<div class="description">
+				<label>Beschreibung</label>
+				<input type="text" />
+			</div>
+			<div class="instruction">
+				<label>Anleitung</label>
+				<input type="text" />
+			</div>
+			<div class="min-ingredient-count">
+				<label>Mindestzutaten</label>
+				<input type="number" min="0" value="0" />
+			</div>
+			<div class="category">
+				<label>Kategorie</label>
+				<select autocomplete="off">
+					<option value="" selected="true">(auswählen)</option>
+					<option value="MAIN_COURSE">Hauptgericht</option>
+					<option value="APPETIZER">Vorspeise</option>
+					<option value="SNACK">Snack</option>
+					<option value="DESSERT">Nachtisch</option>
+					<option value="BREAKFAST">Frühstück</option>
+					<option value="BARBEQUE">Barbeque</option>
+					<option value="ADOLESCENT">Kinderportion</option>
+					<option value="INFANT">Babynahrung</option>
+				</select>
+			</div>
+		</span>
+		<span class="right">
+			<div class="diets">
+				<label>Ernährungsweisen</label>
+				<select multiple="true" autocomplete="off">
+					<option value="CARNIVORIAN">Karnivor</option>
+					<option value="PESCATARIAN">Pescatarisch</option>
+					<option value="LACTO_OVO_VEGETARIAN">Ovo-Lacto-Vegetarisch</option>
+					<option value="LACTO_VEGETARIAN">Lacto-Vegetarisch</option>
+					<option value="VEGAN">Vegan</option>
+				</select>
+			</div>
+			<div class="authorship">
+				<label>Autorenschaft</label>
+				<select autocomplete="off">
+					<option value="" selected="true">(auswählen)</option>
+					<option value="HAS_AUTHOR">Author</option>
+					<option value="HAS_NO_AUTHOR">Kein Author</option>
+				</select>
+			</div>
+		</span>
+	</div>
+	<div class="control">
+		<button class="query" type="button">suchen</button>
+	</div>
+</section>

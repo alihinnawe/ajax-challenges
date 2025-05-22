@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="author" content="Sascha Baumeister" />
+		<meta name="dcterms.rightsHolder" content="Sascha Baumeister" />
+		<meta name="dcterms.rights" content="all rights reserved" />
+		<meta name="dcterms.dateCopyrighted" content="2014" />
+
+		<title>Tournament App</title>
+		<link rel="icon" href="media/tournament.png"/>
+		<link rel="stylesheet" href="../../share/general.css" />
+		<link rel="stylesheet" href="style/tournament.css" />
+		<link rel="stylesheet" href="style/group-stage-editor.css" />
+		<link rel="stylesheet" href="style/group-standings-viewer.css" />
+		<link rel="stylesheet" href="style/knockout-stage-editor.css" />
+		<link rel="stylesheet" href="style/entities-viewer.css" />
+		<link rel="stylesheet" href="style/competitor-editor.css" />
+		<link rel="stylesheet" href="style/tournament-editor.css" />
+		<link rel="stylesheet" href="style/tournament-type-editor.css" />
+
+		<script type="module" async="true" src="script/tournament-selector-pane-controller.js"></script>
+		<script type="module" async="true" src="script/group-stage-editor-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/group-standings-viewer-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/knockout-stage-editor-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/maintenance-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/neutralizer-tab-pane-controller.js"></script>
+	</head>
+
+	<body>
+		<header>
+			<div class="selectors">
+				<span class="tournament-type-selector"></span>
+				<span class="tournament-selector"></span>
+			</div>
+			<nav class="tabs">
+				<button type="button" class="neutralizer hidden"></button>
+				<button type="button" class="group-stage-editor">Group Stage</button>
+				<button type="button" class="group-standings-viewer">Group Standings</button>
+				<button type="button" class="knockout-stage-editor">Knockout Stage</button>
+				<button type="button" class="maintenance">Maintenance</button>
+				<img class="logo" src="media/logo.png" />
+			</nav>
+		</header>
+
+		<main>
+			<article class="left hidden"></article>
+			<article class="center"></article>
+			<article class="right hidden"></article>
+		</main>
+
+		<footer>
+			<div class="token">
+				<label>Token</label>
+				<input type="password" />
+				<button class="activate" type="button">aktivieren</button> 
+			</div>	
+			<div class="message">
+				<label>Nachricht</label>
+				<input type="text" readonly="true" />
+			</div>
+		</footer>
+	</body>
+</html>

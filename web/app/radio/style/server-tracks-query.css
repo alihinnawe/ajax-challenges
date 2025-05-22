@@ -1,0 +1,21 @@
+body>main>article.center>section.server-tracks-query {
+	div.criteria {
+		span.genre,span.artist {
+			select {
+				height: 8rem;
+				width: 15rem;
+			}
+		}
+
+		span.control {
+			label {
+				display: block;
+				text-align: left;
+			}
+
+			input {
+				display: block;
+			}
+		}
+	}
+}

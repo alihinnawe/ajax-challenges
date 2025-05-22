@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="author" content="Sascha Baumeister" />
+		<meta name="dcterms.rightsHolder" content="Sascha Baumeister" />
+		<meta name="dcterms.rights" content="all rights reserved" />
+		<meta name="dcterms.dateCopyrighted" content="2019" />
+
+		<title>Radio App</title>
+		<link rel="icon" href="media/radio.png"/>
+		<link rel="stylesheet" href="../../share/general.css" />
+		<link rel="stylesheet" href="style/authenticator.css" />
+		<link rel="stylesheet" href="style/preferences-editor.css" />
+		<link rel="stylesheet" href="style/server-albums-viewer.css" />
+		<link rel="stylesheet" href="style/server-album-editor.css" />
+		<link rel="stylesheet" href="style/server-tracks-query.css" />
+		<link rel="stylesheet" href="style/server-track-playlist.css" />
+
+		<script type="module" async="true" src="script/authenticator-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/preferences-editor-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/server-album-editor-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/server-track-listener-tab-pane-controller.js"></script>
+
+		<template name="authenticator">
+			<section class="authenticator">
+				<fieldset class="credentials">
+					<legend>Authentifizierung</legend>
+					<div class="email">
+						<label>Email</label>
+						<input type="email" />
+					</div>
+					<div class="password">
+						<label>Passwort</label>
+						<input type="password" />
+					</div>
+					<div class="control">
+						<button class="authenticate" type="button">login</button>
+					</div>
+				</fieldset>
+			</section>
+		</template>
+	</head>	
+
+	<body>
+		<header>
+			<nav class="tabs">
+				<button class="authenticator" type="button">Login</button>
+				<button class="preferences-editor" type="button">Einstellungen</button>
+				<button class="server-album-editor" type="button">Album Editor</button>
+				<button class="server-track-listener" type="button">Radio</button>
+				<img class="logo" src="media/logo.png" />
+			</nav>
+		</header>
+
+		<main>
+			<article class="left hidden"></article>
+			<article class="center"></article>
+			<article class="right hidden"></article>
+		</main>
+
+		<footer>
+			<div class="message">
+				<label>Nachricht</label>
+				<input type="text" readonly="true" />
+			</div>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,86 @@
+<section class="recipe-editor">
+	<div class="data">
+		<span class="avatar">
+			<button type="button">
+				<img ondragover="event.preventDefault()" ondrop="event.preventDefault()" />
+			</button>
+			<input class="hidden" type="file" accept="image/*" />
+		</span>
+		<span class="data">
+			<div class="title">
+				<label>Titel</label>
+				<input type="text" />
+			</div>
+			<div class="diet">
+				<label>Ernährungsweise</label>
+				<input type="text" readonly="true" />
+			</div>
+			<div class="category">
+				<label>Kategorie</label>
+				<select autocomplete="off">
+					<option value="MAIN_COURSE">Hauptgericht</option>
+					<option value="APPETIZER">Vorspeise</option>
+					<option value="SNACK">Snack</option>
+					<option value="DESSERT">Nachtisch</option>
+					<option value="BREAKFAST">Frühstück</option>
+					<option value="BARBEQUE">Barbeque</option>
+					<option value="ADOLESCENT">Kinderportion</option>
+					<option value="INFANT">Babynahrung</option>
+				</select>
+			</div>
+		</span>
+	</div>
+	<div class="description">
+		<label>Beschreibung</label>
+		<textarea></textarea>
+	</div>
+	<div class="instruction">
+		<label>Anleitung</label>
+		<textarea></textarea>
+	</div>
+	<div class="control">
+		<button class="submit" type="button">speichern</button>
+		<button class="delete" type="button">löschen</button>
+		<button class="cancel" type="button">zurück</button>
+	</div>
+	<div class="ingredients">
+		<h1>Zutaten</h1>
+		<table>
+			<thead>
+				<tr>
+					<th>Avatar</th>
+					<th>Art</th>
+					<th>Ernährungsweise</th>
+					<th>Menge</th>
+					<th>Einheit</th>
+					<th>Aktion</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+		<button class="add" type="button">hinzufügen</button>
+	</div>
+	<div class="illustrations">
+		<h1>Illustrationen</h1>
+		<div class="data">
+			<span class="left">
+				<table>
+					<thead>
+						<tr>
+							<th>Link</th>
+							<th>Größe (Bytes)</th>
+							<th>Aktion</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</span>
+			<span class="right">
+				<button type="button">
+					<img src="media/drop-target.png" title="Drop zum Assoziieren" ondragover="event.preventDefault()" ondrop="event.preventDefault()" />
+				</button>
+				<input class="hidden" type="file" accept="*/*" multiple="true" />
+			</span>
+		</div>
+	</div>
+</section>

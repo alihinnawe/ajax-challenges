@@ -1,0 +1,51 @@
+<section class="server-album-editor">
+	<div class="album">
+		<span class="left">
+			<label>Cover</label>
+			<button type="button">
+				<img ondragover="event.preventDefault()" ondrop="event.preventDefault()" />
+			</button>
+			<input class="hidden" type="file" accept="image/*" />
+		</span>
+		<span class="right">
+			<div class="title">
+				<label>Titel</label>
+				<input type="text" />
+			</div>
+			<div class="release-year">
+				<label>Jahr</label>
+				<input type="number" />
+			</div>
+			<div class="track-total">
+				<label>Tracks</label>
+				<input type="number" min="0" max="99" />
+			</div>
+		</span>
+	</div>
+	<div class="control">
+		<button class="submit" type="button">speichern</button>
+		<button class="delete" type="button">löschen</button>
+		<button class="cancel" type="button">zurück</button>
+	</div>
+	<div class="tracks">
+		<h1>Tracks</h1>
+		<div class="data">
+			<table>
+				<thead>
+					<tr>
+						<th>Nummer</th>
+						<th>Künstler</th>
+						<th>Titel</th>
+						<th>Genre</th>
+						<th>Aufnahme</th>
+						<th>Aktion</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+		<div class="control">
+			<button class="create" type="button">neu</button>
+		</div>
+	</div>
+</section>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="author" content="Sascha Baumeister" />
+		<meta name="dcterms.rightsHolder" content="Sascha Baumeister" />
+		<meta name="dcterms.rights" content="all rights reserved" />
+		<meta name="dcterms.dateCopyrighted" content="2023" />
+
+		<title>Kochbuch App</title>
+		<link rel="icon" href="media/cookbook.png" />
+		<link rel="stylesheet" href="../../share/general.css" />
+		<link rel="stylesheet" href="style/authenticator.css" />
+		<link rel="stylesheet" href="style/preferences-editor.css" />
+		<link rel="stylesheet" href="style/victuals-viewer.css" />
+		<link rel="stylesheet" href="style/victual-editor.css" />
+		<link rel="stylesheet" href="style/recipes-query.css" />
+		<link rel="stylesheet" href="style/recipes-viewer.css" />
+		<link rel="stylesheet" href="style/recipe-editor.css" />
+		<link rel="stylesheet" href="style/recipe-viewer.css" />
+
+		<script type="module" async="true" src="script/authenticator-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/preferences-editor-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/victual-editor-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/recipe-editor-tab-pane-controller.js"></script>
+		<script type="module" async="true" src="script/recipe-viewer-tab-pane-controller.js"></script>
+
+		<template name="authenticator">
+			<section class="authenticator">
+				<fieldset class="credentials">
+					<legend>Authentifizierung</legend>
+					<div class="email">
+						<label>Email</label>
+						<input type="email" />
+					</div>
+					<div class="password">
+						<label>Passwort</label>
+						<input type="password" />
+					</div>
+					<div class="control">
+						<button class="authenticate" type="button">login</button>
+					</div>
+				</fieldset>
+			</section>
+		</template>
+	</head>
+
+	<body>
+		<header>
+			<nav class="tabs">
+				<button class="authenticator" type="button">Logout</button>
+				<button class="preferences-editor" type="button">Einstellungen</button>
+				<button class="victual-editor" type="button">Lebensmitteleditor</button>
+				<button class="recipe-editor" type="button">Rezepteditor</button>
+				<button class="recipe-viewer" type="button">Rezeptansicht</button>
+				<img class="logo" src="media/logo.png" />
+			</nav>
+		</header>
+
+		<main>
+			<article class="left hidden"></article>
+			<article class="center"></article>
+			<article class="right hidden"></article>
+		</main>
+
+		<footer>
+			<div class="message">
+				<label>Nachricht</label>
+				<input type="text" readonly="true" />
+			</div>
+		</footer>
+	</body>
+</html>

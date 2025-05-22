@@ -1,0 +1,10 @@
+body>main>article.center>section.victual-editor  {
+	div.avatar>button>img {
+		height: 6rem;
+		width: 6rem;
+	}
+
+	label {
+		width: 8rem;
+	}
+}

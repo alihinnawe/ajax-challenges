@@ -1,0 +1,68 @@
+<section class="preferences-editor">
+	<div class="avatar">
+		<label>Avatar</label>
+		<button type="button">
+			<img ondragover="event.preventDefault()" ondrop="event.preventDefault()" />
+		</button>
+		<input class="hidden" type="file" accept="image/*" />
+	</div>
+	<div class="credentials">
+		<div class="email">
+			<label>Email</label>
+			<input type="email" />
+		</div>
+		<div class="password">
+			<label>Passwort</label>
+			<input type="password" />
+		</div>
+		<div class="group">
+			<label>Gruppe</label>
+			<select autocomplete="off">
+				<option value="USER">Benutzer</option>
+				<option value="ADMIN">Administrator</option>
+			</select>
+		</div>
+	</div>
+	<div class="personal">
+		<span class="name">
+			<div class="title">
+				<label>Titel</label>
+				<input type="text" />
+			</div>
+			<div class="surname">
+				<label>Nachname</label>
+				<input type="text" />
+			</div>
+			<div class="forename">
+				<label>Vorname</label>
+				<input type="text" />
+			</div>
+		</span>
+		<span class="address">
+			<div class="postcode">
+				<label>PLZ</label>
+				<input type="text" />
+			</div>
+			<div class="street">
+				<label>Straße</label>
+				<input type="text" />
+			</div>
+			<div class="city">
+				<label>Ort</label>
+				<input type="text" />
+			</div>
+			<div class="country">
+				<label>Staat</label>
+				<input type="text" />
+			</div>
+		</span>
+	</div>
+	<fieldset class="phones">
+		<legend>Telefon</legend>
+		<span class="phones"></span>
+		<button type="button" class="add">hinzufügen</button>
+	</fieldset>
+	<div class="control">
+		<button type="button" class="submit">speichern</button>
+	</div>
+</section>

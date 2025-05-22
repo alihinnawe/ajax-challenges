@@ -1,0 +1,40 @@
+<section class="tournament-editor">
+	<h1>Tournament</h1>
+	<div class="data">
+		<div class="avatar">
+			<label>Avatar</label>
+			<button type="button">
+				<img ondragover="event.preventDefault()" ondrop="event.preventDefault()" />
+			</button>
+			<input class="hidden" type="file" accept="image/*" />
+		</div>
+		<div class="type">
+			<label>Type</label>
+			<select></select>
+		</div>
+		<div class="groups">
+			<label>Groups</label>
+			<input type="text" readonly="true" />
+		</div>
+		<div class="season">
+			<label>Season</label>
+			<input type="number" value="2000" />
+		</div>
+		<div class="points-per-win">
+			<label>Points per Win</label>
+			<input type="number" value="3" />
+		</div>
+		<div class="points-per-draw">
+			<label>Points per Draw</label>
+			<input type="number" value="1" />
+		</div>
+		<div class="points-per-loss">
+			<label>Points per Loss</label>
+			<input type="number" value="0" />
+		</div>
+	<div>
+	<div class="control">
+		<button class="submit" type="button">ok</button>
+		<button class="cancel" type="button">cancel</button>
+	</div>
+</section>

@@ -1,0 +1,12 @@
+body>main>article.center>section.tournament-type-editor {
+	div.data {
+		label {
+			width: 5rem;
+		}
+
+		div.avatar>button>img {
+			height: 6rem;
+			width: 6rem;
+		}
+	}
+}

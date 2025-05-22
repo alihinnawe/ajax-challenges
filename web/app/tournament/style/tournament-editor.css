@@ -1,0 +1,20 @@
+body>main>article.center>section.tournament-editor {
+	div.data {
+		label {
+			width: 7.5rem;
+		}
+
+		div.avatar>button>img {
+			height: 6rem;
+			width: 6rem;
+		}
+
+		div.groups>input {
+			width: 15rem;
+		}
+
+		div.season>input,div.points-per-win>input,div.points-per-draw>input,div.points-per-loss>input {
+			width: 3.5rem;
+		}
+	}
+}

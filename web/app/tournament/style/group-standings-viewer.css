@@ -1,0 +1,36 @@
+body>main>article.center>section.group-standings-viewer {
+	div.group-standing {
+		table.data {
+			border: 2px groove #f0f0f0;
+
+			tr {
+				th, td {
+					padding: 0.2rem;
+					border-left: 1px solid black;
+					text-align: right;
+				}
+
+				th {
+					background-color: var(--corporate-thead-bgcolor);
+				}
+
+				th.competitor {
+					text-align: left;
+					width: 10rem;
+				}
+
+				th.score {
+					width: 2rem;
+				}
+
+				td.competitor {
+					text-align: left;
+
+					img.avatar {
+						margin-right: 0.4rem;
+					}
+				}
+			}
+		}
+	}
+}
