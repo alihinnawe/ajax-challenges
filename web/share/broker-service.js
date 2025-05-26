@@ -142,6 +142,7 @@ class BrokerServiceProxy extends Object {
 		return window.parseInt(await response.text());
 	}
 
+
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
 	 * GET /services/people - application/json, and returns a
@@ -231,7 +232,7 @@ class BrokerServiceProxy extends Object {
 		const resource = this.#origin + "/services/people/" + personIdentity;
 		const headers = { "Accept": "application/json" };
 
-		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" }, email, password);
+		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return /* await */ response.json();
 	}
@@ -282,6 +283,7 @@ class BrokerServiceProxy extends Object {
 		return window.parseInt(await response.text());
 	}
 
+
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
 	 * GET /services/people/{id}/auctions - application/json, and
@@ -295,19 +297,22 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryPersonAuctions(personIdentity, pagingOffset, pagingLimit, role, states = []) {
-		const query = new URLSearchParams();
-		if (pagingOffset != null) query.set("paging-offset", pagingOffset);
-		if (pagingLimit != null) query.set("paging-limit", pagingLimit);
-		if (role != null) query.set("role", role);
-		if (states.length > 0) query.set("status", states.join(","));
+	async queryPersonAuctions (personIdentity, pagingOffset, pagingLimit, role, states = []) {
+		if (personIdentity == null) throw new ReferenceError();
+		if (typeof personIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/people/" + personIdentity + "/auctions" + (query.size === 0 ? "" : "?" + query.toString());
+		const queryFactory = new URLSearchParams();
+		if (pagingOffset != null) queryFactoryqueryFactory.set("paging-offset", pagingOffset);
+		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
+		if (role != null) queryFactory.set("role", role);
+		for (const status of states) if (status) queryFactory.append("status",status);
+
+		const resource = this.#origin + "/services/people/" + personIdentity + "/auctions" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -323,18 +328,21 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryPersonOffers(personIdentity, pagingOffset, pagingLimit, available) {
-		const query = new URLSearchParams();
-		if (pagingOffset != null) query.set("paging-offset", pagingOffset);
-		if (pagingLimit != null) query.set("paging-limit", pagingLimit);
-		if (available != null) query.set("available", available);
+	async queryPersonOffers (personIdentity, pagingOffset, pagingLimit, available) {
+		if (personIdentity == null) throw new ReferenceError();
+		if (typeof personIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/people/" + personIdentity + "/offers" + (query.size === 0 ? "" : "?" + query.toString());
+		const queryFactory = new URLSearchParams();
+		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
+		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
+		if (available != null) queryFactory.set("available", available);
+
+		const resource = this.#origin + "/services/people/" + personIdentity + "/offers" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -349,17 +357,20 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryPersonOrders(personIdentity, pagingOffset, pagingLimit) {
-		const query = new URLSearchParams();
-		if (pagingOffset != null) query.set("paging-offset", pagingOffset);
-		if (pagingLimit != null) query.set("paging-limit", pagingLimit);
+	async queryPersonOrders (personIdentity, pagingOffset, pagingLimit) {
+		if (personIdentity == null) throw new ReferenceError();
+		if (typeof personIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/people/" + personIdentity + "/orders" + (query.size === 0 ? "" : "?" + query.toString());
+		const queryFactory = new URLSearchParams();
+		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
+		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
+
+		const resource = this.#origin + "/services/people/" + personIdentity + "/orders" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -390,34 +401,34 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryAuctions(pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, category, rating, minManufactureYear, maxManufactureYear, manufacturer, name, description, minClosure, maxClosure, minAskingPrice, maxAskingPrice, role, states = []) {
-		const query = new URLSearchParams();
-		if (pagingOffset != null) query.set("paging-offset", pagingOffset);
-		if (pagingLimit != null) query.set("paging-limit", pagingLimit);
-		if (minCreated != null) query.set("min-created", minCreated);
-		if (maxCreated != null) query.set("max-created", maxCreated);
-		if (minModified != null) query.set("min-modified", minModified);
-		if (maxModified != null) query.set("max-modified", maxModified);
-		if (category != null) query.set("category", category);
-		if (rating != null) query.set("rating", rating);
-		if (minManufactureYear != null) query.set("min-manufacture-year", minManufactureYear);
-		if (maxManufactureYear != null) query.set("max-manufacture-year", maxManufactureYear);
-		if (manufacturer != null) query.set("manufacturer", manufacturer);
-		if (name != null) query.set("name-fragment", name);
-		if (description != null) query.set("description-fragment", description);
-		if (minClosure != null) query.set("min-closure", minClosure);
-		if (maxClosure != null) query.set("max-closure", maxClosure);
-		if (minAskingPrice != null) query.set("min-asking-price", minAskingPrice);
-		if (maxAskingPrice != null) query.set("max-asking-price", maxAskingPrice);
-		if (role != null) query.set("role", role);
-		if (states.length) query.set("status", states.join(","));
+	async queryAuctions (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, category, rating, minManufactureYear, maxManufactureYear, manufacturer, name, description, minClosure, maxClosure, minAskingPrice, maxAskingPrice, role, states = []) {
+		const queryFactory = new URLSearchParams();
+		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
+		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
+		if (minCreated != null) queryFactory.set("min-created", minCreated);
+		if (maxCreated != null) queryFactory.set("max-created", maxCreated);
+		if (minModified != null) queryFactory.set("min-modified", minModified);
+		if (maxModified != null) queryFactory.set("max-modified", maxModified);
+		if (category != null) queryFactory.set("category", category);
+		if (rating != null) queryFactory.set("rating", rating);
+		if (minManufactureYear != null) queryFactory.set("min-manufacture-year", minManufactureYear);
+		if (maxManufactureYear != null) queryFactory.set("max-manufacture-year", maxManufactureYear);
+		if (manufacturer != null) queryFactory.set("manufacturer", manufacturer);
+		if (name != null) queryFactory.set("name-fragment", name);
+		if (description != null) queryFactory.set("description-fragment", description);
+		if (minClosure != null) queryFactory.set("min-closure", minClosure);
+		if (maxClosure != null) queryFactory.set("max-closure", maxClosure);
+		if (minAskingPrice != null) queryFactory.set("min-asking-price", minAskingPrice);
+		if (maxAskingPrice != null) queryFactory.set("max-asking-price", maxAskingPrice);
+		if (role != null) queryFactory.set("role", role);
+		for (const status of states) if (status) queryFactory.append("status",status);
 
-		const resource = this.#origin + "/services/auctions" + (query.size ? "?" + query.toString() : "");
+		const resource = this.#origin + "/services/auctions" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -430,13 +441,16 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async findAuction(auctionIdentity) {
-		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "?detailed=true";
+	async findAuction (auctionIdentity) {
+		if (auctionIdentity == null) throw new ReferenceError();
+		if (typeof auctionIdentity !== "number") throw new TypeError();
+
+		const resource = this.#origin + "/services/auctions/" + auctionIdentity;
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -449,16 +463,16 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async insertOrUpdateAuction(auction) {
+	async insertOrUpdateAuction (auction) {
+		if (auction == null) throw new ReferenceError();
+		if (typeof auction !== "object") throw new TypeError();
+
 		const resource = this.#origin + "/services/auctions";
-		const headers = {
-			"Accept": "text/plain",
-			"Content-Type": "application/json"
-		};
+		const headers = { "Accept": "text/plain", "Content-Type": "application/json" };
 
 		const response = await basicFetch(resource, { method: "POST", headers: headers, body: JSON.stringify(auction), credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return parseInt(await response.text());
+		return window.parseInt(await response.text());
 	}
 
 
@@ -471,14 +485,18 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async deleteAuction(auctionIdentity) {
+	async deleteAuction (auctionIdentity) {
+		if (auctionIdentity == null) throw new ReferenceError();
+		if (typeof auctionIdentity !== "number") throw new TypeError();
+
 		const resource = this.#origin + "/services/auctions/" + auctionIdentity;
 		const headers = { "Accept": "text/plain" };
 
 		const response = await basicFetch(resource, { method: "DELETE", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return parseInt(await response.text());
+		return window.parseInt(await response.text());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -491,17 +509,20 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryVisibleAuctionBids(auctionIdentity, pagingOffset, pagingLimit) {
-		const query = new URLSearchParams();
-		if (pagingOffset != null) query.set("paging-offset", pagingOffset);
-		if (pagingLimit != null) query.set("paging-limit", pagingLimit);
+	async queryVisibleAuctionBids (auctionIdentity, pagingOffset, pagingLimit) {
+		if (auctionIdentity == null) throw new ReferenceError();
+		if (typeof auctionIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "/bids" + (query.size ? "?" + query.toString() : "");
+		const queryFactory = new URLSearchParams();
+		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
+		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
+
+		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "/bids" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -510,26 +531,22 @@ class BrokerServiceProxy extends Object {
 	 * PATCH /services/auctions/{id}/bids text/plain text/plain, and
 	 * returns a promise for the identity of the associated auction.
 	 * @param auctionIdentity the auction identity
-	 * @param bidIncrement the bid increment in cents, zero or null for passing, or negative for folding
+	 * @param bidAmount the bid amount in cents, zero for none
 	 * @return a promise for the identity of the associated auction
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async insertOrUpdateOrDeleteAuctionBid(auctionIdentity, bidIncrement) {
-		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "/bids";
-		const headers = {
-			"Accept": "text/plain",
-			"Content-Type": "text/plain"
-		};
+	async insertOrUpdateOrDeleteAuctionBid (auctionIdentity, bidAmount) {
+		if (auctionIdentity == null || bidAmount == null) throw new ReferenceError();
+		if (typeof auctionIdentity !== "number" || typeof bidAmount !== "number") throw new TypeError();
+		if (bidAmount < 0) throw new RangeError();
 
-		const response = await basicFetch(resource, {
-			method: "PATCH",
-			headers: headers,
-			body: bidIncrement != null ? bidIncrement.toString() : "0",
-			credentials: "include"
-		});
+		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "/bids";
+		const headers = { "Accept": "text/plain", "Content-Type": "text/plain" };
+
+		const response = await basicFetch(resource, { method: "PATCH", headers: headers, body: bidAmount.toString(), credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return parseInt(await response.text());
+		return window.parseInt(await response.text());
 	}
 
 
@@ -560,34 +577,34 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryOffers(pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, category, rating, minManufactureYear, maxManufactureYear, manufacturer, name, description, minPrice, maxPrice, minPostage, maxPostage, available, role) {
-		const query = new URLSearchParams();
-		if (pagingOffset != null) query.set("paging-offset", pagingOffset);
-		if (pagingLimit != null) query.set("paging-limit", pagingLimit);
-		if (minCreated != null) query.set("min-created", minCreated);
-		if (maxCreated != null) query.set("max-created", maxCreated);
-		if (minModified != null) query.set("min-modified", minModified);
-		if (maxModified != null) query.set("max-modified", maxModified);
-		if (category != null) query.set("category", category);
-		if (rating != null) query.set("rating", rating);
-		if (minManufactureYear != null) query.set("min-manufacture-year", minManufactureYear);
-		if (maxManufactureYear != null) query.set("max-manufacture-year", maxManufactureYear);
-		if (manufacturer != null) query.set("manufacturer", manufacturer);
-		if (name != null) query.set("name-fragment", name);
-		if (description != null) query.set("description-fragment", description);
-		if (minPrice != null) query.set("min-price", minPrice);
-		if (maxPrice != null) query.set("max-price", maxPrice);
-		if (minPostage != null) query.set("min-postage", minPostage);
-		if (maxPostage != null) query.set("max-postage", maxPostage);
-		if (available != null) query.set("available", available);
-		if (role != null) query.set("role", role);
+	async queryOffers (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, category, rating, minManufactureYear, maxManufactureYear, manufacturer, name, description, minPrice, maxPrice, minPostage, maxPostage, available, role) {
+		const queryFactory = new URLSearchParams();
+		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
+		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
+		if (minCreated != null) queryFactory.set("min-created", minCreated);
+		if (maxCreated != null) queryFactory.set("max-created", maxCreated);
+		if (minModified != null) queryFactory.set("min-modified", minModified);
+		if (maxModified != null) queryFactory.set("max-modified", maxModified);
+		if (category != null) queryFactory.set("category", category);
+		if (rating != null) queryFactory.set("rating", rating);
+		if (minManufactureYear != null) queryFactory.set("min-manufacture-year", minManufactureYear);
+		if (maxManufactureYear != null) queryFactory.set("max-manufacture-year", maxManufactureYear);
+		if (manufacturer != null) queryFactory.set("manufacturer", manufacturer);
+		if (name != null) queryFactory.set("name-fragment", name);
+		if (description != null) queryFactory.set("description-fragment", description);
+		if (minPrice != null) queryFactory.set("min-price", minPrice);
+		if (maxPrice != null) queryFactory.set("max-price", maxPrice);
+		if (minPostage != null) queryFactory.set("min-postage", minPostage);
+		if (maxPostage != null) queryFactory.set("max-postage", maxPostage);
+		if (available != null) queryFactory.set("available", available);
+		if (role != null) queryFactory.set("role", role);
 
-		const resource = this.#origin + "/services/offers" + (query.size ? "?" + query.toString() : "");
+		const resource = this.#origin + "/services/offers" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -601,7 +618,7 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async findOffer(offerIdentity) {
+	async findOffer (offerIdentity) {
 		if (offerIdentity == null) throw new ReferenceError();
 		if (typeof offerIdentity !== "number") throw new TypeError();
 
@@ -610,7 +627,7 @@ class BrokerServiceProxy extends Object {
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -624,7 +641,15 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async insertOrUpdateOffer (offer) {
-		// TODO
+		if (offer == null) throw new ReferenceError();
+		if (typeof offer !== "object") throw new TypeError();
+
+		const resource = this.#origin + "/services/offers";
+		const headers = {"Accept": "text/plain", "Content-Type": "application/json"};
+
+		const response = await basicFetch(resource, {method: "POST", headers: headers, body: JSON.stringify(offer), credentials: "include"});
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return window.parseInt(await response.text());
 	}
 
 
@@ -638,7 +663,15 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async deleteOffer (offerIdentity) {
-		// TODO
+		if (offerIdentity == null) throw new ReferenceError();
+		if (typeof offerIdentity !== "number") throw new TypeError();
+
+		const resource = this.#origin + "/services/offers/" + offerIdentity;
+		const headers = { "Accept": "text/plain" };
+		
+		const response = await basicFetch(resource, {method: "DELETE", headers: headers, credentials: "include"});
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return window.parseInt(await response.text());
 	}
 
 
@@ -652,7 +685,15 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async findOrder (orderIdentity) {
-		// TODO
+		if (orderIdentity == null) throw new ReferenceError();
+		if (typeof orderIdentity !== "number") throw new TypeError();
+
+		const resource = this.#origin + "/services/orders/" + orderIdentity;
+		const headers = { "Accept": "application/json" };
+
+		const response = await basicFetch(resource, {method: "GET", headers: headers, credentials: "include"});
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return /* await */ response.json();
 	}
 
 
@@ -666,7 +707,15 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async insertOrder (offerIdentity) {
-		// TODO
+		if (offerIdentity == null) throw new ReferenceError();
+		if (typeof offerIdentity !== "number") throw new TypeError();
+
+		const resource = this.#origin + "/services/offers/" + offerIdentity;
+		const headers = { "Accept": "text/plain" };
+
+		const response = await basicFetch(resource, {method: "PATCH", headers: headers, credentials: "include"});
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return window.parseInt(await response.text());
 	}
 
 
@@ -681,9 +730,16 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async updateOrder (orderIdentity, trackingReference) {
-		// TODO
-	}
+		if (orderIdentity == null) throw new ReferenceError();
+		if (typeof orderIdentity !== "number" || (trackingReference != null && typeof trackingReference !== "string")) throw new TypeError();
 
+		const resource = this.#origin + "/services/orders/" + orderIdentity;
+		const headers = {"Accept": "text/plain", "Content-Type": "text/plain"};
+
+		const response = await basicFetch(resource, { method: "PATCH", headers: headers, body: trackingReference === null ? "" : trackingReference, credentials: "include"});
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return window.parseInt(await response.text());
+	}
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -695,7 +751,15 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async deleteOrder (orderIdentity) {
-		// TODO
+		if (orderIdentity == null) throw new ReferenceError();
+		if (typeof orderIdentity !== "number") throw new TypeError();
+
+		const resource = this.#origin + "/services/orders/" + orderIdentity;
+		const headers = {"Accept": "text/plain"};
+
+		const response = await basicFetch(resource, {method: "DELETE", headers: headers, credentials: "include"});
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return window.parseInt(await response.text());
 	}
 }
 
