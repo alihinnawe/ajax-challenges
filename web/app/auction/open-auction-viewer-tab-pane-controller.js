@@ -116,6 +116,8 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 
 
 				const avatarImg = row.querySelector("td.avatar > img");
+				avatarImg.src = BROKER_SERVICE.documentsURI + "/" + auction.attributes["avatar-reference"];
+				
 				const manufacturerCell = row.querySelector("td.manufacturer");
 				if (manufacturerCell) manufacturerCell.textContent = auction.manufacturer || "";
 
@@ -131,8 +133,9 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 				if (endCell) endCell.textContent = new Date(auction.closure).toLocaleString();
 
 				// Gebote
-				const bidsCell = row.querySelector("td.bids");
-				if (bidsCell) bidsCell.textContent = auction.attributes["bid-count"]?.toString() || "0";
+				const bidCell = row.querySelector("td.bid-count");
+				bidCell.textContent = String(auction.attributes["bid-count"] ?? 0);
+
 
 				// Aktion
 				const actionCell = row.querySelector("td.action");
