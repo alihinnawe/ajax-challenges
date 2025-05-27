@@ -99,20 +99,26 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 	 */
 	async processQueryAuctions () {
 		try {
-			if (!this.auctionsViewerSection) {
+			if (!this.auctionViewerSection) {
 				const auctionsViewerSectionTemplate = await this.queryTemplate("auctions-viewer");
 				this.center.append(auctionsViewerSectionTemplate.content.firstElementChild.cloneNode(true));
-				this.auctionsViewerTableHeadExtra.innerText = "Min. Preis (€)";
 			}
 
-			// TODO
+			const auctions = await BROKER_SERVICE.queryAuctions();
+			console.log("auctions", auctions);
 
-			this.messageOutput.value = "";
+
+			this.auctionsViewerTableBody.innerHTML = "";
+			const auctionsViewerTableRowTemplate = await this.queryTemplate("auctions-viewer-row");
+			console.log(auctionsViewerTableRowTemplate);
+
+
 		} catch (error) {
 			this.messageOutput.value = error.toString();
 			console.error(error);
 		}
 	}
+
 
 
 	/**
