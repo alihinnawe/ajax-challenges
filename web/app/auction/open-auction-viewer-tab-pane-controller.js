@@ -107,17 +107,49 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 			const auctions = await BROKER_SERVICE.queryAuctions();
 			console.log("auctions", auctions);
 
-
 			this.auctionsViewerTableBody.innerHTML = "";
 			const auctionsViewerTableRowTemplate = await this.queryTemplate("auctions-viewer-row");
-			console.log(auctionsViewerTableRowTemplate);
+
+			for (const auction of auctions) {
+				const row = auctionsViewerTableRowTemplate.content.firstElementChild.cloneNode(true);
+				this.auctionsViewerTableBody.append(row);
 
 
+				const avatarImg = row.querySelector("td.avatar > img");
+				const manufacturerCell = row.querySelector("td.manufacturer");
+				if (manufacturerCell) manufacturerCell.textContent = auction.manufacturer || "";
+
+				const nameCell = row.querySelector("td.name");
+				if (nameCell) nameCell.textContent = auction.name || "";
+
+				// Beginn
+				const beginCell = row.querySelector("td.begin");
+				if (beginCell) beginCell.textContent = new Date(auction.created).toLocaleString();
+
+				// Ende
+				const endCell = row.querySelector("td.end");
+				if (endCell) endCell.textContent = new Date(auction.closure).toLocaleString();
+
+				// Gebote
+				const bidsCell = row.querySelector("td.bids");
+				if (bidsCell) bidsCell.textContent = auction.attributes["bid-count"]?.toString() || "0";
+
+				// Aktion
+				const actionCell = row.querySelector("td.action");
+				if (actionCell) {
+					const viewButton = document.createElement("button");
+					viewButton.textContent = "Ansehen";
+					viewButton.addEventListener("click", () => this.processDisplayAuctionViewer(auction));
+					actionCell.appendChild(viewButton);
+				}
+			}
 		} catch (error) {
 			this.messageOutput.value = error.toString();
 			console.error(error);
 		}
 	}
+
+
 
 
 
