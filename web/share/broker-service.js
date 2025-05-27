@@ -232,7 +232,7 @@ class BrokerServiceProxy extends Object {
 		const resource = this.#origin + "/services/people/" + personIdentity;
 		const headers = { "Accept": "application/json" };
 
-		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
+		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" }, email, password);
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return /* await */ response.json();
 	}
@@ -305,7 +305,7 @@ class BrokerServiceProxy extends Object {
 		if (pagingOffset != null) queryFactoryqueryFactory.set("paging-offset", pagingOffset);
 		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
 		if (role != null) queryFactory.set("role", role);
-		for (const status of states) if (status) queryFactory.append("status",status);
+		if (states.length > 0) queryFactory.set("status", states.join(","));
 
 		const resource = this.#origin + "/services/people/" + personIdentity + "/auctions" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "Accept": "application/json" };
@@ -421,9 +421,9 @@ class BrokerServiceProxy extends Object {
 		if (minAskingPrice != null) queryFactory.set("min-asking-price", minAskingPrice);
 		if (maxAskingPrice != null) queryFactory.set("max-asking-price", maxAskingPrice);
 		if (role != null) queryFactory.set("role", role);
-		for (const status of states) if (status) queryFactory.append("status",status);
+		if (states.length) queryFactory.set("status", states.join(","));
 
-		const resource = this.#origin + "/services/auctions" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const resource = this.#origin + "/services/auctions" + (queryFactory.size ? "?" + queryFactory.toString() : "");
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
@@ -445,7 +445,7 @@ class BrokerServiceProxy extends Object {
 		if (auctionIdentity == null) throw new ReferenceError();
 		if (typeof auctionIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/auctions/" + auctionIdentity;
+		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "?detailed=true";
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
@@ -517,7 +517,7 @@ class BrokerServiceProxy extends Object {
 		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
 		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
 
-		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "/bids" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const resource = this.#origin + "/services/auctions/" + auctionIdentity + "/bids" + (queryFactory.size ? "?" + queryFactory.toString() : "");
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
@@ -599,7 +599,7 @@ class BrokerServiceProxy extends Object {
 		if (available != null) queryFactory.set("available", available);
 		if (role != null) queryFactory.set("role", role);
 
-		const resource = this.#origin + "/services/offers" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const resource = this.#origin + "/services/offers" + (queryFactory.size ? "?" + queryFactory.toString() : "");
 		const headers = { "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
@@ -641,8 +641,8 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async insertOrUpdateOffer (offer) {
-		if (offer == null) throw new ReferenceError();
-		if (typeof offer !== "object") throw new TypeError();
+		if (offer == null) throw new ReferenceError("Offer must not be null.");
+		if (typeof offer !== "object") throw new TypeError("Offer must be an object.");
 
 		const resource = this.#origin + "/services/offers";
 		const headers = {"Accept": "text/plain", "Content-Type": "application/json"};
@@ -663,11 +663,11 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async deleteOffer (offerIdentity) {
-		if (offerIdentity == null) throw new ReferenceError();
-		if (typeof offerIdentity !== "number") throw new TypeError();
+		if (offerIdentity == null) { throw new ReferenceError("Offer identity must not be null.");}
+		if (typeof offerIdentity !== "string" && typeof offerIdentity !== "number") { throw new TypeError("Offer identity must be a string or number.");}
 
 		const resource = this.#origin + "/services/offers/" + offerIdentity;
-		const headers = { "Accept": "text/plain" };
+		const headers = { "Accept": "text/plain"};
 		
 		const response = await basicFetch(resource, {method: "DELETE", headers: headers, credentials: "include"});
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
@@ -685,14 +685,15 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async findOrder (orderIdentity) {
-		if (orderIdentity == null) throw new ReferenceError();
-		if (typeof orderIdentity !== "number") throw new TypeError();
+		if (orderIdentity == null) throw new ReferenceError("Order identity must not be null.");
+		if (typeof orderIdentity !== "number") throw new TypeError("Order identity must be a string or number.");
 
 		const resource = this.#origin + "/services/orders/" + orderIdentity;
 		const headers = { "Accept": "application/json" };
 
-		const response = await basicFetch(resource, {method: "GET", headers: headers, credentials: "include"});
+		const response = await this.basicFetch(resource, {method: "GET", headers: headers, credentials: "include"});
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+
 		return /* await */ response.json();
 	}
 
@@ -707,14 +708,15 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async insertOrder (offerIdentity) {
-		if (offerIdentity == null) throw new ReferenceError();
-		if (typeof offerIdentity !== "number") throw new TypeError();
+		if (offerIdentity == null) throw new ReferenceError("Offer identity must not be null.");
+		if (typeof offerIdentity !== "number") throw new TypeError("Offer identity must be a number.");
 
 		const resource = this.#origin + "/services/offers/" + offerIdentity;
 		const headers = { "Accept": "text/plain" };
 
-		const response = await basicFetch(resource, {method: "PATCH", headers: headers, credentials: "include"});
+		const response = await this.basicFetch(resource, {method: "SET", headers: headers, credentials: "include"});
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+
 		return window.parseInt(await response.text());
 	}
 
@@ -730,14 +732,16 @@ class BrokerServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async updateOrder (orderIdentity, trackingReference) {
-		if (orderIdentity == null) throw new ReferenceError();
-		if (typeof orderIdentity !== "number" || (trackingReference != null && typeof trackingReference !== "string")) throw new TypeError();
+		if (orderIdentity == null) throw new ReferenceError("Order identity must not be null.");
+		if (typeof orderIdentity !== "number") throw new TypeError("Order identity must be a number.");
+		if (trackingReference != null && typeof trackingReference !== "string") throw new TypeError("Tracking reference must be a string or null.");
 
 		const resource = this.#origin + "/services/orders/" + orderIdentity;
-		const headers = {"Accept": "text/plain", "Content-Type": "text/plain"};
+		const headers = {"Content-Type": "text/plain", "Accept": "text/plain"};
 
-		const response = await basicFetch(resource, { method: "PATCH", headers: headers, body: trackingReference === null ? "" : trackingReference, credentials: "include"});
+		const response = await this.basicFetch(resource, { method: "PATCH", headers: headers, body: trackingReference === null ? "" : trackingReference, credentials: "include"});
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+
 		return window.parseInt(await response.text());
 	}
 
@@ -750,15 +754,16 @@ class BrokerServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async deleteOrder (orderIdentity) {
-		if (orderIdentity == null) throw new ReferenceError();
-		if (typeof orderIdentity !== "number") throw new TypeError();
+	async deleteOrder(orderIdentity) {
+		if (orderIdentity == null) throw new ReferenceError("Order identity must not be null.");
+		if (typeof orderIdentity !== "number") throw new TypeError("Order identity must be a number.");
 
 		const resource = this.#origin + "/services/orders/" + orderIdentity;
 		const headers = {"Accept": "text/plain"};
 
-		const response = await basicFetch(resource, {method: "DELETE", headers: headers, credentials: "include"});
+		const response = await this.basicFetch(resource, {method: "DELETE", headers: headers, credentials: "include"});
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+
 		return window.parseInt(await response.text());
 	}
 }
