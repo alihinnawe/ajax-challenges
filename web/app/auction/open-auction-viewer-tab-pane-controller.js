@@ -34,7 +34,7 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 	get auctionsQueryNameInput () { return this.auctionsQuerySection.querySelector("div.name>input"); }
 	get auctionsQueryDescriptionInput () { return this.auctionsQuerySection.querySelector("div.description>input"); }
 	get auctionsQueryMaxAskingPriceInput () { return this.auctionsQuerySection.querySelector("div.max-asking-price>input"); }
-	get auctionsQueryMaxOpenDurationInput () { return this.auctionsQuerySection.querySelector("div.max-open-duration>input"); }
+	get auctionsQueryMinOpenDurationInput () { return this.auctionsQuerySection.querySelector("div.min-open-duration>input"); }
 	get auctionsQueryMinAgeInput () { return this.auctionsQuerySection.querySelector("div.min-age>input"); }
 	get auctionsQueryMaxAgeInput () { return this.auctionsQuerySection.querySelector("div.max-age>input"); }
 	get auctionsQueryButton () { return this.auctionsQuerySection.querySelector("div.control>button.query"); }
@@ -99,52 +99,55 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 	 */
 	async processQueryAuctions () {
 		try {
-			if (!this.auctionViewerSection) {
+			if (!this.auctionsViewerSection) {
 				const auctionsViewerSectionTemplate = await this.queryTemplate("auctions-viewer");
 				this.center.append(auctionsViewerSectionTemplate.content.firstElementChild.cloneNode(true));
 			}
 
-			const auctions = await BROKER_SERVICE.queryAuctions();
+			const category = this.auctionsQueryCategorySelector.value.trim() || null;
+			const rating = this.auctionsQueryRatingSelector.value.trim() || null;
+			const manufacturer = this.auctionsQueryManufacturerInput.value.trim() || null;
+			const name = this.auctionsQueryNameInput.value.trim() || null;
+			const description = this.auctionsQueryDescriptionInput.value.trim() || null;
+			const maxAskingPrice = Math.round(100 * Number.parseFloat(this.auctionsQueryMaxAskingPriceInput.value.trim())) || null;
+			const minOpenDuration = Math.round(Number.parseFloat(this.auctionsQueryMinOpenDurationInput.value.trim()) * DAY_MILLIES) || null;
+			const minAge = Math.round(Number.parseFloat(this.auctionsQueryMinAgeInput.value.trim()) * DAY_MILLIES) || null;
+			const maxAge = Math.round(Number.parseFloat(this.auctionsQueryMaxAgeInput.value.trim()) * DAY_MILLIES) || null;
+
+			const minClosure = minOpenDuration == null ? null : Date.now() + minOpenDuration;
+			const minCreated = maxAge == null ? null : Date.now() - maxAge;
+			const maxCreated = minAge == null ? null : Date.now() - minAge;
+
+			const auctions = await BROKER_SERVICE.queryAuctions(null, null, minCreated, maxCreated, null, null, category, rating, null, null, manufacturer, name, description, minClosure, null, maxAskingPrice, null, "BIDDER", ["OPEN", "SEALED"]);
 			console.log("auctions", auctions);
 
 			this.auctionsViewerTableBody.innerHTML = "";
 			const auctionsViewerTableRowTemplate = await this.queryTemplate("auctions-viewer-row");
 
 			for (const auction of auctions) {
-				const row = auctionsViewerTableRowTemplate.content.firstElementChild.cloneNode(true);
-				this.auctionsViewerTableBody.append(row);
-
-
-				const avatarImg = row.querySelector("td.avatar > img");
+				const tableRow = auctionsViewerTableRowTemplate.content.firstElementChild.cloneNode(true);
+				this.auctionsViewerTableBody.append(tableRow);
+				this.auctionsViewerTableHeadExtra.innerText = "Mind. Preis (€)";
+				const avatarImg = tableRow.querySelector("td.avatar > img");
 				avatarImg.src = BROKER_SERVICE.documentsURI + "/" + auction.attributes["avatar-reference"];
+				const manufacturer = tableRow.querySelector("td.manufacturer");
+				manufacturer.textContent = auction.manufacturer || "";
+				const name = tableRow.querySelector("td.name");
+				name.textContent = auction.name || "";
+				const begin = tableRow.querySelector("td.begin");
+				begin.textContent = new Date(auction.created).toLocaleString();
+				const end = tableRow.querySelector("td.end");
+				end.textContent = new Date(auction.closure).toLocaleString();
+				const bid = tableRow.querySelector("td.bid-count");
+				bid.textContent = String(auction.attributes["bid-count"] ?? 0);
+				const askingPrice = tableRow.querySelector("td.extra");
+				askingPrice.textContent = auction.askingPrice / 100;
+				const action = tableRow.querySelector("td.action");
 				
-				const manufacturerCell = row.querySelector("td.manufacturer");
-				if (manufacturerCell) manufacturerCell.textContent = auction.manufacturer || "";
-
-				const nameCell = row.querySelector("td.name");
-				if (nameCell) nameCell.textContent = auction.name || "";
-
-				// Beginn
-				const beginCell = row.querySelector("td.begin");
-				if (beginCell) beginCell.textContent = new Date(auction.created).toLocaleString();
-
-				// Ende
-				const endCell = row.querySelector("td.end");
-				if (endCell) endCell.textContent = new Date(auction.closure).toLocaleString();
-
-				// Gebote
-				const bidCell = row.querySelector("td.bid-count");
-				bidCell.textContent = String(auction.attributes["bid-count"] ?? 0);
-
-
-				// Aktion
-				const actionCell = row.querySelector("td.action");
-				if (actionCell) {
-					const viewButton = document.createElement("button");
-					viewButton.textContent = "Ansehen";
-					viewButton.addEventListener("click", () => this.processDisplayAuctionViewer(auction));
-					actionCell.appendChild(viewButton);
-				}
+				const viewButton = document.createElement("button");
+				viewButton.textContent = "Ansehen";
+				viewButton.addEventListener("click", () => this.processDisplayAuctionViewer(auction));
+				action.appendChild(viewButton);
 			}
 		} catch (error) {
 			this.messageOutput.value = error.toString();
@@ -162,7 +165,42 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 	 */
 	async processDisplayAuctionViewer (auction) {
 		try {
-			// TODO
+			this.auctionsViewerSection.classList.add("hidden");
+			this.auctionsQuerySection.classList.add("hidden");
+			const auctionViewerSectionTemplate = await this.queryTemplate("auction-viewer");
+			this.center.append(auctionViewerSectionTemplate.content.firstElementChild.cloneNode(true));
+
+			const seller = await BROKER_SERVICE.findPerson(auction.attributes["seller-reference"]);
+			this.auctionViewerSellerAvatarViewer.src = BROKER_SERVICE.documentsURI + "/" + seller.attributes["avatar-reference"];
+			this.auctionViewerSellerNameInput.value = seller.name.given + " " + seller.name.family;
+			this.auctionViewerSellerEmailInput.value = seller.email || "";
+			this.auctionViewerSellerBicInput.value = (seller.account || {}).bic || "";
+			this.auctionViewerSellerIbanInput.value = (seller.account || {}).iban || "";
+
+			const closure = new Date(auction.closure);
+			this.auctionViewerAuctionAvatarViewer.src = BROKER_SERVICE.documentsURI + "/" + auction.attributes["avatar-reference"];
+			this.auctionViewerAuctionCategoryInput.value = CATEGORY[auction.category];
+			this.auctionViewerAuctionRatingInput.value = RATING[auction.rating];
+			this.auctionViewerAuctionPriceInput.value = (0.01 * auction.askingPrice).toFixed(2);
+			this.auctionViewerAuctionClosureInput.value = closure.toLocaleDateString() + " " + closure.toLocaleTimeString();
+			this.auctionViewerAuctionManufactureYearInput.value = auction.manufactureYear;
+			this.auctionViewerAuctionManufacturerInput.value = auction.manufacturer;
+			this.auctionViewerAuctionNameInput.value = auction.name;
+			this.auctionViewerAuctionSerialInput.value = auction.serial || "";
+			this.auctionViewerAuctionDescriptionArea.value = auction.description || "";
+			this.auctionViewerAuctionBidCountInput.value = auction.attributes["bid-count"].toString();
+
+			this.auctionViewerCancelButton.addEventListener("click", event => this.processCancel());
+			this.auctionViewerBidButton.addEventListener("click", event => this.processSubmitBid(auction.identity));
+		
+			if (this.sessionOwner.identity === auction.attributes["seller-reference"] || this.sessionOwner.group === "ADMIN") {
+				this.auctionViewerBidderBidAmountDivision.classList.add("hidden");
+				this.auctionViewerBidButton.classList.add("hidden");
+			} else {
+				const bids = await BROKER_SERVICE.queryVisibleAuctionBids(auction.identity);
+				const bidAmount = (bids.find(bid => bid.attributes["bidder-reference"] === this.sessionOwner.identity) || {}).amount || 0;
+				this.auctionViewerBidderBidAmountInput.value = (0.01 * bidAmount).toFixed(2);
+			}
 
 			this.messageOutput.value = "";
 		} catch (error) {
@@ -177,7 +215,12 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 	 */
 	async processCancel () {
 		try {
-			// TODO
+			if (this.auctionViewerSection) this.auctionViewerSection.remove();
+			if (this.auctionEditorSection) this.auctionEditorSection.remove();
+
+			await this.processQueryAuctions();
+			this.auctionsViewerSection.classList.remove("hidden");
+			this.auctionsQuerySection.classList.remove("hidden");
 
 			this.messageOutput.value = "ok";
 		} catch (error) {
@@ -193,8 +236,8 @@ export default class AuctionViewerTabPaneController extends TabPaneController {
 	 */
 	async processSubmitBid (auctionIdentity) {
 		try {
-			// TODO
-
+			const bidAmount = Math.round(100 * Number.parseFloat(this.auctionViewerBidderBidAmountInput.value.trim())) || null;
+			await BROKER_SERVICE.insertOrUpdateOrDeleteAuctionBid(auctionIdentity, bidAmount);
 			this.messageOutput.value = "ok";
 		} catch (error) {
 			this.messageOutput.value = error.toString();
