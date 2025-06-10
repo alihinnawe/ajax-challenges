@@ -75,7 +75,7 @@ export default class TubeServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryDocuments (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, hash, typeFragment, descriptionFragment, minSize, maxSize) {
+	async queryDocuments (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, hash, type, description, minSize, maxSize) {
 		const queryFactory = new URLSearchParams();
 		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
 		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
@@ -84,19 +84,18 @@ export default class TubeServiceProxy extends Object {
 		if (minModified != null) queryFactory.set("min-modified", minModified);
 		if (maxModified != null) queryFactory.set("max-modified", maxModified);
 		if (hash != null) queryFactory.set("hash", hash);
-		if (typeFragment != null) queryFactory.set("type-fragment", typeFragment);
-		if (descriptionFragment != null) queryFactory.set("description-fragment", descriptionFragment);
+		if (type != null) queryFactory.set("type-fragment", type);
+		if (description != null) queryFactory.set("description-fragment", description);
 		if (minSize != null) queryFactory.set("min-size", minSize);
 		if (maxSize != null) queryFactory.set("max-size", maxSize);
 
-		const resource = this.#origin + "/services/documents" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const resource = this.documentsURI + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return /* await */ response.json();
 	}
-
 
 
 	/**
@@ -111,13 +110,14 @@ export default class TubeServiceProxy extends Object {
 		if (documentIdentity == null || metadata == null) throw new ReferenceError();
 		if (typeof documentIdentity !== "number" || typeof metadata !== "boolean") throw new TypeError();
 
-		const resource = this.#origin + "/services/documents/" + documentIdentity;
+		const resource = this.documentsURI + "/" + documentIdentity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": metadata ? "application/json" : "*/*" };
 
 		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return await (metadata ? response.json() : response.arrayBuffer());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -132,13 +132,14 @@ export default class TubeServiceProxy extends Object {
 		if (file == null) throw new ReferenceError();
 		if (typeof file !== "object" || !(file instanceof File)) throw new TypeError();
 
-		const resource = this.#origin + "/services/documents";
+		const resource = this.documentsURI;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": file.type, "X-Content-Description": file.name };
 
 		const response = await basicFetch(resource, { method: "POST" , headers: headers, body: file, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -150,13 +151,17 @@ export default class TubeServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async deleteDocument (documentIdentity) {
-		const resource = this.#origin + "/services/documents/" + documentIdentity;
+		if (documentIdentity == null) throw new ReferenceError();
+		if (typeof documentIdentity !== "number") throw new TypeError();
+
+		const resource = this.documentsURI + "/" + documentIdentity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain" };
-		
+
 		const response = await basicFetch(resource, { method: "DELETE" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -182,7 +187,7 @@ export default class TubeServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryPeople (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, email, group, title, surname, forename, street, city, country, postcode) {
+	async queryPeople (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, email, gender, group, title, surname, forename, street, city, country, postcode) {
 		const queryFactory = new URLSearchParams();
 		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
 		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
@@ -191,10 +196,11 @@ export default class TubeServiceProxy extends Object {
 		if (minModified != null) queryFactory.set("min-modified", minModified);
 		if (maxModified != null) queryFactory.set("max-modified", maxModified);
 		if (email != null) queryFactory.set("email", email);
+		if (gender != null) queryFactory.set("gender", gender);
 		if (group != null) queryFactory.set("group", group);
 		if (title != null) queryFactory.set("title", title);
-		if (surname != null) queryFactory.set("surname", surname);
 		if (forename != null) queryFactory.set("forename", forename);
+		if (surname != null) queryFactory.set("surname", surname);
 		if (street != null) queryFactory.set("street", street);
 		if (city != null) queryFactory.set("city", city);
 		if (country != null) queryFactory.set("country", country);
@@ -205,7 +211,10 @@ export default class TubeServiceProxy extends Object {
 
 		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return /* await */ response.json();
+		const people = await response.json();
+
+		people.forEach(person => person.phones.sort((leftPhone, rightPhone) => leftPhone.number.localeCompare(rightPhone.number)));
+		return people;
 	}
 
 
@@ -228,7 +237,10 @@ export default class TubeServiceProxy extends Object {
 
 		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" }, email, password);
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return /* await */ response.json();
+		const person = await response.json();
+
+		person.phones.sort((leftPhone, rightPhone) => leftPhone.number.localeCompare(rightPhone.number));
+		return person;
 	}
 
 
@@ -250,7 +262,10 @@ export default class TubeServiceProxy extends Object {
 
 		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return /* await */ response.json();
+		const person = await response.json();
+
+		person.phones.sort((leftPhone, rightPhone) => leftPhone.number.localeCompare(rightPhone.number));
+		return person;
 	}
 
 
@@ -289,17 +304,18 @@ export default class TubeServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async updatePerson (person, password = null) {
-		if (person == null) throw new ReferenceError();
-		if (typeof person !== "object" || (password != null && typeof password !== "string")) throw new TypeError();
+		if (person == null || person.identity == null) throw new ReferenceError();
+		if (typeof person !== "object" || typeof person.identity !== "number" || (password != null && typeof password !== "string")) throw new TypeError();
 
 		const resource = this.#origin + "/services/people/" + person.identity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": "application/json" };
 		if (password != null) headers["X-Set-Password"] = password;
 
-		const response = await basicFetch(resource, { method: "POST" , headers: headers, body: JSON.stringify(person), credentials: "include" });
+		const response = await basicFetch(resource, { method: "PUT" , headers: headers, body: JSON.stringify(person), credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -332,20 +348,16 @@ export default class TubeServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryAccessPlans(personIdentity) {
+	async queryAccessPlans (personIdentity) {
 		if (personIdentity == null) throw new ReferenceError();
 		if (typeof personIdentity !== "number") throw new TypeError();
 
-		try {
-			const url = this.#origin + "/services/people/" + personIdentity + "/access-plans";
-			const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
-			
-			const response = await basicFetch(url, { method: "GET", headers: headers });
-			if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-			return await response.json();
-		} catch (error) {
-			throw new Error("Failed to fetch access plans: " + error.message);
-		}
+		const resource = this.#origin + "/services/people/" + personIdentity + "/access-plans";
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
+
+		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return /* await */ response.json();
 	}
 
 
@@ -358,20 +370,16 @@ export default class TubeServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async insertOrUpdateAccessPlan(accessPlan) {
+	async insertOrUpdateAccessPlan (accessPlan) {
 		if (accessPlan == null || accessPlan.attributes == null || accessPlan.attributes["tenant-reference"] == null) throw new ReferenceError();
 		if (typeof accessPlan !== "object" || typeof accessPlan.attributes !== "object" || typeof accessPlan.attributes["tenant-reference"] !== "number") throw new TypeError();
-		
-		try {
-			const url = this.#origin + "/services/people/" + accessPlan.attributes["tenant-reference"] + "/access-plans";
-			const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": "application/json" };
-			
-			const response = await basicFetch(url, { method: "POST", headers: headers, body: JSON.stringify(accessPlan) });
-			if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-			return await response.text();
-		} catch (error) {
-			throw new Error("Failed to insert or update access plan: " + error.message);
-		}
+
+		const resource = this.#origin + "/services/people/" + accessPlan.attributes["tenant-reference"] + "/access-plans";
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": "application/json" };
+
+		const response = await basicFetch(resource, { method: "POST" , headers: headers, body: JSON.stringify(accessPlan), credentials: "include" });
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return window.parseInt(await response.text());
 	}
 
 
@@ -386,15 +394,15 @@ export default class TubeServiceProxy extends Object {
 	 * @throws if the TCP connection to the web-service cannot be established, 
 	 *			or if the HTTP response is not ok
 	 */
-	async queryEditableSeries(person, pagingOffset, pagingLimit) {
-		if (person == null) throw new ReferenceError();
-		if (typeof person !== "object") throw new TypeError();
+	async queryEditableSeries (person, pagingOffset, pagingLimit) {
+		if (person == null || person.group == null) throw new ReferenceError();
+		if (typeof person !== "object" || typeof person.group !== "string") throw new TypeError();
 
+		const path = person.group === "ADMIN" ? "series" : "people/" + person.identity + "/series";
 		const queryFactory = new URLSearchParams();
 		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
 		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
 
-		const path = person.group === "ADMIN" ? "series" : "people/" + person.identity + "/series";
 		const resource = this.#origin + "/services/" + path + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
@@ -402,6 +410,7 @@ export default class TubeServiceProxy extends Object {
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return /* await */ response.json();
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature GET
@@ -416,14 +425,14 @@ export default class TubeServiceProxy extends Object {
 	 *			or if the HTTP response is not ok
 	 */
 	async queryEditableFlicks (person, pagingOffset, pagingLimit) {
-		if (person == null) throw new ReferenceError();
-		if (typeof person !== "object") throw new TypeError();
-		
+		if (person == null || person.group == null) throw new ReferenceError();
+		if (typeof person !== "object" || typeof person.group !== "string") throw new TypeError();
+
+		const path = person.group === "ADMIN" ? "flicks" : "people/" + person.identity + "/flicks";
 		const queryFactory = new URLSearchParams();
 		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
 		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
-		
-		const path = person.group === "ADMIN" ? "flicks" : "people/" + person.identity + "/flicks";
+
 		const resource = this.#origin + "/services/" + path + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
@@ -462,22 +471,20 @@ export default class TubeServiceProxy extends Object {
 		if (maxCreated != null) queryFactory.set("max-created", maxCreated);
 		if (minModified != null) queryFactory.set("min-modified", minModified);
 		if (maxModified != null) queryFactory.set("max-modified", maxModified);
-		if (title != null) queryFactory.set("title", title);
+		if (title != null) queryFactory.set("title-fragment", title);
 		if (minReleaseYear != null) queryFactory.set("min-release-year", minReleaseYear);
 		if (maxReleaseYear != null) queryFactory.set("max-release-year", maxReleaseYear);
 		if (minSeasonTotal != null) queryFactory.set("min-season-total", minSeasonTotal);
-		if (maxSeasonTotal != null) queryFactory.set("m-season-total", minSeasonTotal);
+		if (maxSeasonTotal != null) queryFactory.set("max-season-total", maxSeasonTotal);
+		if (minSeasonCount != null) queryFactory.set("min-season-count", minSeasonCount);
+		if (maxSeasonCount != null) queryFactory.set("max-season-count", maxSeasonCount);
 
-		if (title != null) queryFactory.set("title", title);
-		if (title != null) queryFactory.set("title", title);
-		
-		const resource = this.#origin + "/services/documents" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const resource = this.#origin + "/services/series" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
 		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return /* await */ response.json();
-
 	}
 
 
@@ -493,11 +500,11 @@ export default class TubeServiceProxy extends Object {
 	async findSeries (seriesIdentity) {
 		if (seriesIdentity == null) throw new ReferenceError();
 		if (typeof seriesIdentity !== "number") throw new TypeError();
-		
-		const resource = this.#origin + "/services/series/" + seriesIdentity;
-		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
-		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
+		const resource = this.#origin + "/services/series/" + seriesIdentity;
+
+		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return /* await */ response.json();
 	}
@@ -519,7 +526,7 @@ export default class TubeServiceProxy extends Object {
 		const resource = this.#origin + "/services/series";
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": "application/json" };
 
-		const response = await basicFetch(resource, { method: "POST", headers: headers, body: JSON.stringify(series), credentials: "include" });
+		const response = await basicFetch(resource, { method: "POST" , headers: headers, body: JSON.stringify(series), credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
@@ -541,10 +548,11 @@ export default class TubeServiceProxy extends Object {
 		const resource = this.#origin + "/services/series/" + seriesIdentity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain" };
 
-		const response = await basicFetch(resource, { method: "DELETE", headers: headers, credentials: "include" });
+		const response = await basicFetch(resource, { method: "DELETE" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -555,7 +563,7 @@ export default class TubeServiceProxy extends Object {
 	 * @param pagingLimit the maximum paging size, or null for undefined
 	 * @return a promise for the resulting series seasons
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async querySeriesSeasons (seriesIdentity, pagingOffset, pagingLimit) {
 		if (seriesIdentity == null) throw new ReferenceError();
@@ -568,9 +576,9 @@ export default class TubeServiceProxy extends Object {
 		const resource = this.#origin + "/services/series/" + seriesIdentity + "/seasons" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
-		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
+		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -591,8 +599,6 @@ export default class TubeServiceProxy extends Object {
 	 * @param minEpisodeCount the minimum episode count, or null for undefined
 	 * @param maxEpisodeCount the maximum episode count, or null for undefined
 	 * @return the matching seasons, ordered by ascending series identity and ordinal
-	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
 	 */
 	async querySeasons (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, minOrdinal, maxOrdinal, minEpisodeTotal, maxEpisodeTotal, minEpisodeCount, maxEpisodeCount) {
 		const queryFactory = new URLSearchParams();
@@ -609,12 +615,12 @@ export default class TubeServiceProxy extends Object {
 		if (minEpisodeCount != null) queryFactory.set("min-episode-count", minEpisodeCount);
 		if (maxEpisodeCount != null) queryFactory.set("max-episode-count", maxEpisodeCount);
 
-		const resource = this.#origin + "/services/seasons" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const resource = this.#origin + "/services/series" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
-		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
+		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -625,18 +631,18 @@ export default class TubeServiceProxy extends Object {
 	 * @param seasonIdentity the season identity
 	 * @return a promise for the season
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async findSeason (seasonIdentity) {
 		if (seasonIdentity == null) throw new ReferenceError();
 		if (typeof seasonIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/seasons/" + seasonIdentity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
+		const resource = this.#origin + "/services/seasons/" + seasonIdentity;
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -647,25 +653,16 @@ export default class TubeServiceProxy extends Object {
 	 * @param season the season
 	 * @return a promise for the season's identity
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async insertOrUpdateSeason (season) {
-		if (season == null) throw new ReferenceError();
-		if (typeof season !== "object") throw new TypeError();
+		if (season == null || season.attributes == null) throw new ReferenceError();
+		if (typeof season !== "object" || typeof season.attributes !== "object") throw new TypeError();
 
 		const resource = this.#origin + "/services/seasons";
-		const headers = { 
-			"X-Access-Key": this.#accessKey, 
-			"Accept": "text/plain", 
-			"Content-Type": "application/json" 
-		};
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": "application/json" };
 
-		const response = await basicFetch(resource, { 
-			method: "POST", 
-			headers: headers, 
-			body: JSON.stringify(season), 
-			credentials: "include" 
-		});
+		const response = await basicFetch(resource, { method: "POST" , headers: headers, body: JSON.stringify(season), credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
@@ -675,22 +672,49 @@ export default class TubeServiceProxy extends Object {
 	 * Remotely invokes the web-service method with HTTP signature
 	 * DELETE /services/series/{id}/seasons/{ordinal} - text/plain,
 	 * and returns a promise for the deleted season's identity.
-	 * @param seriesIdentity the series identity
-	 * @param seasonOrdinal the season ordinal
+	 * @param seasonIdentity the season identity
 	 * @return a promise for the deleted season's identity
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
-	async deleteSeason (seriesIdentity, seasonOrdinal) {
-		if (seriesIdentity == null || seasonOrdinal == null) throw new ReferenceError();
-		if (typeof seriesIdentity !== "number" || typeof seasonOrdinal !== "number") throw new TypeError();
+	async deleteSeason (seasonIdentity) {
+		if (seasonIdentity == null) throw new ReferenceError();
+		if (typeof seasonIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/series/" + seriesIdentity + "/seasons/" + seasonOrdinal;
+		const resource = this.#origin + "/services/seasons/" + seasonIdentity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain" };
 
-		const response = await basicFetch(resource, { method: "DELETE", headers: headers, credentials: "include" });
+		const response = await basicFetch(resource, { method: "DELETE" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
+	}
+
+
+	/**
+	 * Remotely invokes the web-service method with HTTP signature
+	 * GET /services/seasons/{id}/episodes - application/json,
+	 * and returns a promise for the resulting season episodes.
+	 * @param seasonIdentity the season identity
+	 * @param pagingOffset the paging offset, or null for undefined
+	 * @param pagingLimit the maximum paging size, or null for undefined
+	 * @return a promise for the resulting season episodes
+	 * @throws if the TCP connection to the web-service cannot be established, 
+	 *			or if the HTTP response is not ok
+	 */
+	async querySeasonEpisodes (seasonIdentity, pagingOffset, pagingLimit) {
+		if (seasonIdentity == null) throw new ReferenceError();
+		if (typeof seasonIdentity !== "number") throw new TypeError();
+
+		const queryFactory = new URLSearchParams();
+		if (pagingOffset != null) queryFactory.set("paging-offset", pagingOffset);
+		if (pagingLimit != null) queryFactory.set("paging-limit", pagingLimit);
+
+		const resource = this.#origin + "/services/seasons/" + seasonIdentity + "/episodes" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
+
+		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
+		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
+		return /* await */ response.json();
 	}
 
 
@@ -721,7 +745,7 @@ export default class TubeServiceProxy extends Object {
 	 * @param recorded whether or not there is an associated recording, or null for undefined
 	 * @return a promise for the resulting flicks
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async queryFlicks (pagingOffset, pagingLimit, minCreated, maxCreated, minModified, maxModified, minOrdinal, maxOrdinal, minSeasonOrdinal, maxSeasonOrdinal, title, seriesTitle, minReleaseYear, maxReleaseYear, genre, producer, director, actor, character, synopsis, recorded) {
 		const queryFactory = new URLSearchParams();
@@ -735,24 +759,24 @@ export default class TubeServiceProxy extends Object {
 		if (maxOrdinal != null) queryFactory.set("max-ordinal", maxOrdinal);
 		if (minSeasonOrdinal != null) queryFactory.set("min-season-ordinal", minSeasonOrdinal);
 		if (maxSeasonOrdinal != null) queryFactory.set("max-season-ordinal", maxSeasonOrdinal);
-		if (title != null) queryFactory.set("title", title);
-		if (seriesTitle != null) queryFactory.set("series-title", seriesTitle);
+		if (title != null) queryFactory.set("title-fragment", title);
+		if (seriesTitle != null) queryFactory.set("series-title-fragment", seriesTitle);
 		if (minReleaseYear != null) queryFactory.set("min-release-year", minReleaseYear);
 		if (maxReleaseYear != null) queryFactory.set("max-release-year", maxReleaseYear);
-		if (genre != null) queryFactory.set("genre", genre);
-		if (producer != null) queryFactory.set("producer", producer);
-		if (director != null) queryFactory.set("director", director);
-		if (actor != null) queryFactory.set("actor", actor);
-		if (character != null) queryFactory.set("character", character);
-		if (synopsis != null) queryFactory.set("synopsis", synopsis);
+		if (genre != null) queryFactory.set("genre-fragment", genre);
+		if (producer != null) queryFactory.set("producers-fragment", producer);
+		if (director != null) queryFactory.set("directors-fragment", director);
+		if (actor != null) queryFactory.set("actors-fragment", actor);
+		if (character != null) queryFactory.set("characters-fragment", character);
+		if (synopsis != null) queryFactory.set("synopsis-fragment", synopsis);
 		if (recorded != null) queryFactory.set("recorded", recorded);
 
-		const resource = this.#origin + "/services/flicks" + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
+		const resource = this.flicksURI + (queryFactory.size === 0 ? "" : "?" + queryFactory.toString());
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
 
-		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
+		const response = await basicFetch(resource, { method: "GET" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.json();
+		return /* await */ response.json();
 	}
 
 
@@ -763,95 +787,21 @@ export default class TubeServiceProxy extends Object {
 	 * @param flickIdentity the flick identity
 	 * @return a promise for the resulting flick
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async findFlick (flickIdentity) {
 		if (flickIdentity == null) throw new ReferenceError();
 		if (typeof flickIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/flicks/" + flickIdentity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
+		const resource = this.flicksURI + "/" + flickIdentity;
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.json();
+		return /* await */ response.json();
 	}
 
 
-/**
- * Remotely invokes the web-service method with HTTP signature
- * POST /services/flicks application/json text/plain,
- * and returns a promise for the identity of the modified flick.
- * @param flick the flick
- * @return a promise for the identity of the modified flick
- * @throws if the TCP connection to the web-service cannot be established, 
- *         or if the HTTP response is not ok
- */
-async insertOrUpdateFlick (flick) {
-    if (flick == null) throw new ReferenceError();
-    if (typeof flick !== "object") throw new TypeError();
-
-    const resource = this.#origin + "/services/flicks";
-    const headers = { 
-        "X-Access-Key": this.#accessKey, 
-        "Accept": "text/plain", 
-        "Content-Type": "application/json" 
-    };
-
-    const response = await basicFetch(resource, { 
-        method: "POST", 
-        headers: headers, 
-        body: JSON.stringify(flick), 
-        credentials: "include" 
-    });
-    if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-    return window.parseInt(await response.text());
-}
-
-/**
- * Remotely invokes the web-service method with HTTP signature
- * DELETE /services/flicks/{id} - text/plain,
- * and returns a promise for the identity of the deleted flick.
- * @param flickIdentity the flick identity
- * @return a promise for the identity of the deleted flick
- * @throws if the TCP connection to the web-service cannot be established, 
- *         or if the HTTP response is not ok
- */
-async deleteFlick (flickIdentity) {
-    if (flickIdentity == null) throw new ReferenceError();
-    if (typeof flickIdentity !== "number") throw new TypeError();
-
-    const resource = this.#origin + "/services/flicks/" + flickIdentity;
-    const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain" };
-
-    const response = await basicFetch(resource, { method: "DELETE", headers: headers, credentials: "include" });
-    if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-    return window.parseInt(await response.text());
-}
-
-
-	/**
-	 * Remotely invokes the web-service method with HTTP signature
-	 * GET /services/flicks/{id}/recording - video/*, and returns
-	 * a promise for the resulting flick recording BLOB.
-	 * @param flickIdentity the flick identity
-	 * @return a promise for the resulting flick recording BLOB
-	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
-	 */
-	async findFlickRecording (flickIdentity) {
-		if (flickIdentity == null) throw new ReferenceError();
-		if (typeof flickIdentity !== "number") throw new TypeError();
-
-		const resource = this.#origin + "/services/flicks/" + flickIdentity + "/recording";
-		const headers = { "X-Access-Key": this.#accessKey, "Accept": "video/*" };
-
-		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
-		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.blob();
-	}
-	
-	
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
 	 * POST /services/flicks application/json text/plain,
@@ -859,28 +809,20 @@ async deleteFlick (flickIdentity) {
 	 * @param flick the flick
 	 * @return a promise for the identity of the modified flick
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async insertOrUpdateFlick (flick) {
 		if (flick == null) throw new ReferenceError();
 		if (typeof flick !== "object") throw new TypeError();
 
-		const resource = this.#origin + "/services/flicks";
-		const headers = { 
-			"X-Access-Key": this.#accessKey, 
-			"Accept": "text/plain", 
-			"Content-Type": "application/json" 
-		};
+		const resource = this.flicksURI;
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": "application/json" };
 
-		const response = await basicFetch(resource, { 
-			method: "POST", 
-			headers: headers, 
-			body: JSON.stringify(flick), 
-			credentials: "include" 
-		});
+		const response = await basicFetch(resource, { method: "POST" , headers: headers, body: JSON.stringify(flick), credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -889,19 +831,20 @@ async deleteFlick (flickIdentity) {
 	 * @param flickIdentity the flick identity
 	 * @return a promise for the identity of the deleted flick
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async deleteFlick (flickIdentity) {
 		if (flickIdentity == null) throw new ReferenceError();
 		if (typeof flickIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/flicks/" + flickIdentity;
+		const resource = this.flicksURI + "/" + flickIdentity;
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain" };
 
-		const response = await basicFetch(resource, { method: "DELETE", headers: headers, credentials: "include" });
+		const response = await basicFetch(resource, { method: "DELETE" , headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
 		return window.parseInt(await response.text());
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -910,19 +853,20 @@ async deleteFlick (flickIdentity) {
 	 * @param flickIdentity the flick identity
 	 * @return a promise for the resulting flick recording BLOB
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async findFlickRecording (flickIdentity) {
 		if (flickIdentity == null) throw new ReferenceError();
 		if (typeof flickIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/flicks/" + flickIdentity + "/recording";
-		const headers = { "X-Access-Key": this.#accessKey, "Accept": "video/*" };
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "application/json" };
+		const resource = this.flicksURI + "/" + flickIdentity + "/recording";
 
 		const response = await basicFetch(resource, { method: "GET", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.blob();
+		return /* await */ response.blob();
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -932,29 +876,20 @@ async deleteFlick (flickIdentity) {
 	 * @param file the file
 	 * @return a promise for the flick recording URI
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async updateFlickRecording (flickIdentity, file) {
 		if (flickIdentity == null || file == null) throw new ReferenceError();
-		if (typeof flickIdentity !== "number" || !(file instanceof File)) throw new TypeError();
+		if (typeof flickIdentity !== "number" || typeof file !== "object" || !(file instanceof File)) throw new TypeError();
 
-		const resource = this.#origin + "/services/flicks/" + flickIdentity + "/recording";
-		const headers = { 
-			"X-Access-Key": this.#accessKey, 
-			"Accept": "text/plain", 
-			"Content-Type": file.type, 
-			"X-Content-Description": file.name 
-		};
+		const resource = this.flicksURI + "/" + flickIdentity + "/recording";
+		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain", "Content-Type": file.type };
 
-		const response = await basicFetch(resource, { 
-			method: "PUT", 
-			headers: headers, 
-			body: file, 
-			credentials: "include" 
-		});
+		const response = await basicFetch(resource, { method: "PUT" , headers: headers, body: file, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.text();
+		return /* await */ response.text();
 	}
+
 
 	/**
 	 * Remotely invokes the web-service method with HTTP signature
@@ -963,17 +898,17 @@ async deleteFlick (flickIdentity) {
 	 * @param flickIdentity the flick identity
 	 * @return a promise for the deleted flick recording URI
 	 * @throws if the TCP connection to the web-service cannot be established, 
-	 *         or if the HTTP response is not ok
+	 *			or if the HTTP response is not ok
 	 */
 	async deleteFlickRecording (flickIdentity) {
 		if (flickIdentity == null) throw new ReferenceError();
 		if (typeof flickIdentity !== "number") throw new TypeError();
 
-		const resource = this.#origin + "/services/flicks/" + flickIdentity + "/recording";
 		const headers = { "X-Access-Key": this.#accessKey, "Accept": "text/plain" };
+		const resource = this.flicksURI + "/" + flickIdentity + "/recording";
 
 		const response = await basicFetch(resource, { method: "DELETE", headers: headers, credentials: "include" });
 		if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-		return await response.text();
+		return /* await */ response.text();
 	}
 }
