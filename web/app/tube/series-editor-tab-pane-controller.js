@@ -69,7 +69,27 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		const seriesArray = await this.tubeService.queryEditableSeries(this.sessionOwner);
 		console.log(seriesArray);
 
-		// TODO
+		const tableRowTemplate = await this.queryTemplate("series-viewer-row");
+		this.seriesViewerTableBody.innerHTML = "";
+		for (const series of seriesArray) {
+			
+			const tableRow = tableRowTemplate.content.firstElementChild.cloneNode(true);
+			this.seriesViewerTableBody.append(tableRow);
+			const accessButton = tableRow.querySelector("td.cover>button");
+			
+			const accessButtonImageViewer = tableRow.querySelector("td.cover>button>img");
+			accessButtonImageViewer.src = this.tubeService.documentsURI + "/" + series.attributes["cover-reference"];
+
+			const title = tableRow.querySelector("td.title");
+			title.innerText = series.title || "";
+
+			const releaseYear = tableRow.querySelector("td.release-year");
+			releaseYear.innerText = series.releaseYear || new Date().getFullYear()).toString();
+			
+			const seasons = tableRow.querySelector("td.seasons");
+			seasons.innerText = (season.attributes["season-count"] || 0)  + "/" +  (season.seasonTotal || 0);
+			
+		}
 	}
 
 
@@ -81,7 +101,33 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		try {
 			if (!series.attributes) series.attributes = { "author-reference": this.sessionOwner.identity, "cover-reference": 1, "season-count": 0 };
 
-			// TODO
+			this.seriesViewerSection.classList.add("hidden");
+			const seriesEditorSectionTemplate = await this.queryTemplate("server-series-editor");
+			this.center.append(seriesEditorSectionTemplate.content.firstElementChild.cloneNode(true));
+			this.seriesEditorCancelButton.addEventListener("click", event => this.processCancel());
+
+			this.seriesEditorCoverViewer.src = this.tubeService.documentsURI + "/" + series.attributes["cover-reference"];
+			this.seriesEditorTitleInput.value = series.title || "";
+			this.seriesEditorReleaseYearInput.value = (series.releaseYear || new Date().getFullYear()).toString();
+			this.seriesEditorTrackTotalInput.value = (series.seasonTotal || 0).toString();
+
+
+			this.seriesEditorCoverButton.addEventListener("click", event => this.seriesEditorCoverChooser.click());
+			this.seriesEditorCoverButton.addEventListener("dragover", event => this.processImageTransferValidation(event.dataTransfer));
+			this.seriesEditorCoverButton.addEventListener("drop", event => this.processSubmitseasonCover(series, event.dataTransfer.files[0]));
+			this.seriesEditorCoverChooser.addEventListener("change", event => this.processSubmitseasonCover(series, event.currentTarget.files[0]));
+			
+			this.seriesEditorSubmitButton.addEventListener("click", event => this.processSubmitseries(series));
+			this.seriesEditorDeleteButton.addEventListener("click", event => this.processDeleteseries(series.identity));
+
+
+			if (series.identity) {
+				const seasons = await this.tubeService.queryseriesTracks(series.identity);
+				for (const season of seasons) this.processDisplaySeriesEditor(searies);
+			} else {
+				this.seriesEditorSeriesDivision.classList.add("hidden");
+			}
+
 
 			this.messageOutput.value = "ok.";
 		} catch (error) {
@@ -107,8 +153,7 @@ class SeriesEditorTabPaneController extends TabPaneController {
 	 */
 	async processSubmitSeries (series) {
 		try {
-			// TODO
-
+			if(series) await this.tubeService.insertOrUpdateSeries(series);
 
 			this.messageOutput.value = "ok.";
 		} catch (error) {
