@@ -1,6 +1,5 @@
 import TabPaneController from "../../../share/tab-pane-controller.js";
 
-
 /**
  * Series editor tab pane controller type.
  */
@@ -15,7 +14,6 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		// register controller event listeners 
 		this.addEventListener("activated", event => this.processActivated());
 	}
-
 
 	// getter/setter operations
 	get tubeService () { return this.sharedAttributes["tube-service"]; }
@@ -38,21 +36,17 @@ class SeriesEditorTabPaneController extends TabPaneController {
 	get seriesEditorDeleteButton () { return this.seriesEditorSection.querySelector("div.control>button.delete"); }
 	get seriesEditorCancelButton () { return this.seriesEditorSection.querySelector("div.control>button.cancel"); }
 
-
 	/**
 	 * Handles that activity has changed from false to true.
 	 */
 	async processActivated () {
 		try {
-			// redefine center content
 			while (this.center.lastElementChild) this.center.lastElementChild.remove();
 			const seriesViewerSectionTemplate = await this.queryTemplate("series-viewer");
 			this.center.append(seriesViewerSectionTemplate.content.firstElementChild.cloneNode(true));
 
-			// register basic event listeners
-			this.seriesViewerCreateButton.addEventListener("click", event => this.processDisplaySeriesEditor());
-
-			this.#displayEditableSeries();
+			this.seriesViewerCreateButton.addEventListener("click", () => this.processDisplaySeriesEditor());
+			await this.#displayEditableSeries();
 
 			this.messageOutput.value = "";
 		} catch (error) {
@@ -61,116 +55,89 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		}
 	}
 
-
 	/**
 	 * Queries and displays all editable series.
 	 */
 	async #displayEditableSeries () {
 		const seriesArray = await this.tubeService.queryEditableSeries(this.sessionOwner);
-		console.log(seriesArray);
-
 		const tableRowTemplate = await this.queryTemplate("series-viewer-row");
 		this.seriesViewerTableBody.innerHTML = "";
 		for (const series of seriesArray) {
-			
 			const tableRow = tableRowTemplate.content.firstElementChild.cloneNode(true);
 			this.seriesViewerTableBody.append(tableRow);
+
 			const accessButton = tableRow.querySelector("td.cover>button");
-			
 			const accessButtonImageViewer = tableRow.querySelector("td.cover>button>img");
 			accessButtonImageViewer.src = this.tubeService.documentsURI + "/" + series.attributes["cover-reference"];
 
-			const title = tableRow.querySelector("td.title");
-			title.innerText = series.title || "";
+			accessButton.addEventListener("click", event => this.processDisplaySeriesEditor(series));
 
-			const releaseYear = tableRow.querySelector("td.release-year");
-			releaseYear.innerText = series.releaseYear || new Date().getFullYear()).toString();
-			
-			const seasons = tableRow.querySelector("td.seasons");
-			seasons.innerText = (series.attributes["season-count"] || 0)  + "/" +  (series.seasonTotal || 0);
-			
+			tableRow.querySelector("td.title").innerText = series.title || "";
+			tableRow.querySelector("td.release-year").innerText = series.releaseYear || (new Date().getFullYear()).toString();
+			tableRow.querySelector("td.seasons").innerText = (series.attributes["season-count"] || 0) + "/" + (series.seasonTotal || 0);
 		}
 	}
-
 
 	/**
 	 * Displays the given series in a new editor section.
 	 * @param series the series, or a new object for none
 	 */
-	async processDisplaySeriesEditor(series = {}) {
+	async processDisplaySeriesEditor (series = {}) {
 		try {
-			if (!series.attributes) {
-				series.attributes = {
-					"cover-reference": 1,
-					"author-reference": this.sessionOwner.identity,
-					"season-count": 0
-				};
-			}
+			if (!series.attributes) { series.attributes = { "cover-reference": 1, "author-reference": this.sessionOwner.identity, "season-count": 0 };}
 
 			this.seriesViewerSection.classList.add("hidden");
-
 			const seriesEditorSectionTemplate = await this.queryTemplate("series-editor");
 			this.center.append(seriesEditorSectionTemplate.content.firstElementChild.cloneNode(true));
 
 			this.seriesEditorCoverViewer.src = this.tubeService.documentsURI + "/" + series.attributes["cover-reference"];
-
 			this.seriesEditorTitleInput.value = series.title || "";
 			this.seriesEditorReleaseYearInput.value = series.releaseYear || new Date().getFullYear().toString();
 			this.seriesEditorSeasonTotalInput.value = series.seasonTotal || "0";
 
-			this.seriesEditorCancelButton.addEventListener("click", () => this.processCancel());
-			this.seriesEditorSubmitButton.addEventListener("click", () => this.processSubmitseries(series));
-			this.seriesEditorDeleteButton.addEventListener("click", () => this.processDeleteseries(series.identity));
-
-			this.seriesEditorCoverButton.addEventListener("click", () => this.seriesEditorCoverViewer.click());
-			this.seriesEditorCoverButton.addEventListener("dragover", event => this.processImageTransferValidation(event.dataTransfer));
-			this.seriesEditorCoverButton.addEventListener("drop", event => {
-				event.preventDefault();
-				const file = event.dataTransfer.files[0];
-				if (file) this.processSubmitseriesCover(series, file);
-			});
-			this.seriesEditorCoverViewer.addEventListener("change", event => {
-				const file = event.currentTarget.files[0];
-				if (file) this.processSubmitseriesCover(series, file);
-			});
+			this.seriesEditorSeasonTotalInput.addEventListener("change", event => this.processSeasonTotalChanged(series.identity, window.parseInt(event.currentTarget.value.trim())));
+			this.seriesEditorCancelButton.addEventListener("click", event => this.processCancel());
+			this.seriesEditorSubmitButton.addEventListener("click", event => this.processSubmitSeries(series));
+			this.seriesEditorDeleteButton.addEventListener("click", event => this.processDeleteSeries(series.identity));
 
 			const rowTemplate = await this.queryTemplate("series-editor-row");
 			this.seriesEditorSeasonsTableBody.innerHTML = "";
 
-			const seasonCount = Number(series.attributes["season-count"]) || 0;
+			if (series.identity) {
+				const seasons = await this.tubeService.querySeriesSeasons(series.identity);
+				series.attributes["season-count"] = seasons.length;
 
-			for (let i = 0; i < seasonCount; i++) {
-				const tableRow = rowTemplate.content.firstElementChild.cloneNode(true);
+				seasons.forEach(season => {
+					const tableRow = rowTemplate.content.firstElementChild.cloneNode(true);
+					this.seriesEditorSeasonsTableBody.append(tableRow);
 
-				tableRow.querySelector("td.ordinal").textContent = i.toString();
+					tableRow.querySelector("td.ordinal").textContent = season.ordinal.toString();
+					tableRow.querySelector("output.episode-count").value = (season.episodeCount || 0).toString();
+					tableRow.querySelector("input.episode-total").value = (season.episodeTotal || 0).toString();
 
-				tableRow.querySelector("output.episode-count").value = "0";
-				tableRow.querySelector("input.episode-total").value = "0";
+					const img = tableRow.querySelector("td.cover img");
+					const fileInput = tableRow.querySelector("td.cover input[type='file']");
+					const button = tableRow.querySelector("td.cover button");
+					img.src = this.tubeService.documentsURI + "/" + season.attributes["cover-reference"];
 
-				const img = tableRow.querySelector("td.cover img");
-				const fileInput = tableRow.querySelector("td.cover input[type='file']");
-				const button = tableRow.querySelector("td.cover button");
+					button.addEventListener("click", () => fileInput.click());
+					button.addEventListener("dragover", event => {
+						event.preventDefault();
+						this.processImageTransferValidation(event.dataTransfer);
+					});
+					button.addEventListener("drop", event => {
+						event.preventDefault();
+						const file = event.dataTransfer.files[0];
+						if (file) this.processSubmitSeasonCover(season, file);
+					});
 
-				img.src = this.tubeService.documentsURI + "/" + series.attributes["cover-reference"];
-
-				button.addEventListener("click", () => fileInput.click());
-
-				button.addEventListener("dragover", event => {
-					event.preventDefault();
-					this.processImageTransferValidation(event.dataTransfer);
+					fileInput.addEventListener("change", event => {
+						const file = event.currentTarget.files[0];
+						if (file) this.processSubmitSeasonCover(season, file);
+					});
 				});
-				button.addEventListener("drop", event => {
-					event.preventDefault();
-					const file = event.dataTransfer.files[0];
-					if (file) this.processSubmitseasonCover(series, file, i);
-				});
-
-				fileInput.addEventListener("change", event => {
-					const file = event.currentTarget.files[0];
-					if (file) this.processSubmitseasonCover(series, file, i);
-				});
-
-				this.seriesEditorSeasonsTableBody.appendChild(tableRow);
+			} else {
+				series.attributes["season-count"] = 0;
 			}
 
 			this.messageOutput.value = "ok.";
@@ -180,26 +147,33 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		}
 	}
 
-
-
-	/**
-	 * Queries and refreshes the given series season editor rows.
-	 * @param seriesIdentity the series identity
-	 * @return an execution promise
-	 */
-	async #refreshSeriesSeasons (seriesIdentity) {
-		// TODO
-	}
-
-
-	/**
-	 * Submits the given series.
-	 * @param series the series
-	 */
 	async processSubmitSeries (series) {
 		try {
-			if(series) await this.tubeService.insertOrUpdateSeries(series);
+			const seasonTotal = series.seasonTotal || 0;
+			series.title = this.seriesEditorTitleInput.value.trim();
+			series.releaseYear = this.seriesEditorReleaseYearInput.value.trim();
+			series.seasonTotal = parseInt(this.seriesEditorSeasonTotalInput.value.trim()) || 0;
+			series.identity = await this.tubeService.insertOrUpdateSeries(series);
+			series.version = (series.version || 0) + 1;
 
+			const seasons = await this.tubeService.querySeriesSeasons(series.identity);
+			const episodeCounts = this.seriesEditorSeasonsTableRows.map(tableRow => window.parseInt(tableRow.querySelector("td.episodes>input").value.trim()) || 0);
+			for (let ordinal = seasons.length - 1; ordinal >= series.seasonTotal; --ordinal) {
+				const season = seasons[ordinal];
+				await this.tubeService.deleteSeason(season.identity);
+			}
+
+			for (let ordinal = 0; ordinal < Math.min(seasons.length, series.seasonTotal); ++ordinal) {
+				const season = seasons[ordinal];
+				season.episodeCount = episodeCounts[ordinal];
+				await this.tubeService.insertOrUpdateSeason(season);
+			}
+
+			for (let ordinal = seasons.length; ordinal < series.seasonTotal; ++ordinal) {
+				const season = { attributes: { "series-reference": series.identity }, ordinal: ordinal, episodeCount: episodeCounts[ordinal] };
+				await this.tubeService.insertOrUpdateSeason(season);
+			}
+			
 			this.messageOutput.value = "ok.";
 		} catch (error) {
 			this.messageOutput.value = error.message || error.toString();
@@ -207,11 +181,6 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		}
 	}
 
-
-	/**
-	 * Deletes the given series.
-	 * @param seriesIdentity the series identity
-	 */
 	async processDeleteSeries (seriesIdentity) {
 		try {
 			if (seriesIdentity)
@@ -225,16 +194,11 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		}
 	}
 
-
-	/**
-	 * Removes the editor section and re-displays the refreshed table section.
-	 */
 	async processCancel () {
 		try {
 			this.seriesEditorSection.remove();
 			await this.#displayEditableSeries();
 			this.seriesViewerSection.classList.remove("hidden");
-
 			this.messageOutput.value = "ok.";
 		} catch (error) {
 			this.messageOutput.value = error.message || error.toString();
@@ -242,34 +206,20 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		}
 	}
 
-
-	/**
-	 * Performs validating an image file transfer attempt.
-	 * @param dataTransfer the data transfer
-	 */
 	async processImageTransferValidation (dataTransfer) {
 		const primaryItem = dataTransfer.items[0];
 		dataTransfer.dropEffect = primaryItem.kind === "file" && primaryItem.type && primaryItem.type.startsWith("image/") ? "copy" : "none";
 	}
 
-
-	/**
-	 * Submits the given image file, and both registers and submits it as the given season's cover.
-	 * @param season the season
-	 * @param imageFile the image file, or null for none
-	 */
 	async processSubmitSeasonCover (season, imageFile) {
 		try {
-			if (!imageFile) return;
-			if (!imageFile.type || !imageFile.type.startsWith("image/")) throw new RangeError();
+			if (!imageFile || !imageFile.type.startsWith("image/")) throw new RangeError();
 			season.attributes["cover-reference"] = await this.tubeService.insertOrUpdateDocument(imageFile);
-
 			await this.tubeService.insertOrUpdateSeason(season);
 			season.version += 1;
 
 			const coverViewer = this.seriesEditorSeasonsTableRows[season.ordinal].querySelector("td.cover>button>img");
 			coverViewer.src = this.tubeService.documentsURI + "/" + season.attributes["cover-reference"];
-
 			this.messageOutput.value = "ok.";
 		} catch (error) {
 			this.messageOutput.value = error.message || error.toString();
@@ -277,18 +227,22 @@ class SeriesEditorTabPaneController extends TabPaneController {
 		}
 	}
 
-
-	/**
-	 * Submits the given season.
-	 * @param season the season
-	 */
 	async processSubmitSeason (season) {
 		try {
 			const episodeTotalInput = this.seriesEditorSeasonsTableRows[season.ordinal].querySelector("input.episode-total");
-			season.episodeTotal = window.parseInt(episodeTotalInput.value.trim()) || 0;
-
+			season.episodeTotal = parseInt(episodeTotalInput.value.trim()) || 0;
 			await this.tubeService.insertOrUpdateSeason(season);
 			season.version += 1;
+			this.messageOutput.value = "ok.";
+		} catch (error) {
+			this.messageOutput.value = error.message || error.toString();
+			console.error(error);
+		}
+	}
+
+
+	async proccessDeleteSeason (season) {
+		try {
 
 			this.messageOutput.value = "ok.";
 		} catch (error) {
@@ -296,13 +250,35 @@ class SeriesEditorTabPaneController extends TabPaneController {
 			console.error(error);
 		}
 	}
+
+
+	async processSeasonTotalChanged (seriesIdentity, seasonTotal) {
+		try {
+			const seasonRowCount = this.seriesEditorSeasonsTableRows.length;
+
+			for (let ordinal = seasonRowCount - 1; ordinal >= seasonTotal; --ordinal)
+				this.seriesEditorSeasonsTableBody.lastElementChild.remove();
+				// TODO: move!   await this.tubeService.deleteSeason(seasons[ordinal].identity);
+
+			const tableRowTemplate = await this.queryTemplate("series-editor-row");
+			for (let ordinal = seasonRowCount; ordinal < seasonTotal; ++ordinal) {
+				const tableRow = tableRowTemplate.content.firstElementChild.cloneNode(true);
+				this.seriesEditorSeasonsTableBody.append(tableRow);
+
+				tableRow.querySelector("td.cover>button>img").src = this.tubeService.documentsURI + "/1";
+				//  TODO: move!   await this.tubeService.insertOrUpdateSeason({ attributes: { "series-reference": seriesIdentity }, ordinal: ordinal });
+			}
+
+			this.messageOutput.value = "";
+		} catch (error) {
+			this.messageOutput.value = error.message || error.toString();
+			console.error(error);
+		}
+	}
+	
 }
 
-
-/**
- * Registers an event handler for the browser window's load event.
- */
-window.addEventListener("load", event => {
+window.addEventListener("load", () => {
 	const controller = new SeriesEditorTabPaneController();
 	console.log(controller);
 });
